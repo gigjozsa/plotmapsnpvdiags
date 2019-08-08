@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# Please use python3
+# Please use python3 and the aplPY from https://github.com/gigjozsa/aplpy
 from astropy import log
 log.setLevel('ERROR')
 
