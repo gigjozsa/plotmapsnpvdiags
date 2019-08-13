@@ -9,6 +9,13 @@ set conv_kernel = 60
 set threshold_original = 0.003
 set threshold_model = 0.0009
 set mom1thresh = 0.1
+set optical_1 = dss2_red_gj.fits
+set ellipsepos_x = 358.01
+set ellipsepos_y = -52.5550
+set ellipse_maj = 0.0375
+set ellipse_min = 0.0275
+set ellipse_pa = 30
+set distance = 7.01
 
 #Script below:
 #${prefix}_original.fits: original data cube reduced to size as given in region
@@ -210,6 +217,53 @@ maths exp="<${prefix}_or_mdiff_mom0>*1.248683E24*8.01325e-21/(1.1330900354567984
 puthd in=${prefix}_or_mdiff_mom0_sol/bunit value='MSOL/PC**2'
 fits in=${prefix}_or_mdiff_mom0_sol out=${prefix}_or_mdiff_mom0_sol.fits op=xyout
 
+# Some trick to get an optical image of the size of the radio image
+rm -r ${prefix}_optical_1
+rm -r ${prefix}_model_masked_mom0_blr_sol_reg
+rm -r ${prefix}_optical_1_masked
+rm -r ${prefix}_preoptical
+rm -r ${prefix}_preoptical_blr
+rm -r ${prefix}_optical
+rm -r ${prefix}_optical_dss_r.fits
+fits in=${optical_1} out=${prefix}_optical_1 op=xyin
+regrid in=${prefix}_model_masked_mom0_blr_sol tin=${prefix}_optical_1 axes=1,2 out=${prefix}_model_masked_mom0_blr_sol_reg
+maths exp="<${prefix}_optical_1>" mask="<${prefix}_model_masked_mom0_blr_sol_reg>.gt.-100000000" out=${prefix}_optical_1_masked
+imsub in=${prefix}_optical_1 region=mask"(${prefix}_optical_1_masked)" out=${prefix}_preoptical
+imblr in=${prefix}_preoptical out=${prefix}_preoptical_blr
+regrid in=${prefix}_optical_1 tin=${prefix}_preoptical axes=1,2 out=${prefix}_optical
+fits in=${prefix}_optical out=${prefix}_optical_dss_r.fits op=xyout
+convfits.py eso149_optical_dss_r.fits 3 3
+
+# Measurements
+rm -r ${prefix}_or_mask_mom0_blr_ellipse
+rm -r ${prefix}_not_mask_mom0_blr_emasked
+rm -r ${prefix}_or_mdiff_mom0_emasked
+rm -r ${prefix}_cdiff_masked_mom0_blr_emasked
+rm -r ${prefix}_not_mask_mom0_blr_emasked.fits
+rm -r ${prefix}_or_mdiff_mom0_emasked.fits
+rm -r ${prefix}_cdiff_masked_mom0_blr_emasked.fits
+
+set ellipse_maj_as = `calc ${ellipse_maj}"*"3600`
+set ellipse_min_as = `calc ${ellipse_min}"*"3600`
+
+set xoffset = `impos in=${prefix}_or_mask_mom0_blr coord=${ellipsepos_x},${ellipsepos_y} type=absdeg,absdeg | grep -A 2 "Offset world coordinates" | awk '{if (match($2,"1:")) {printf("%.6f",$5)}}'`
+set yoffset = `impos in=${prefix}_or_mask_mom0_blr coord=${ellipsepos_x},${ellipsepos_y} type=absdeg,absdeg | grep -A 2 "Offset world coordinates" | awk '{if (match($2,"2:")) {printf("%.6f",$5)}}'`
+
+imgen in=${prefix}_or_mask_mom0_blr out=${prefix}_or_mask_mom0_blr_ellipse factor=0 object=disk spar=1,${xoffset},${yoffset},${ellipse_maj_as},${ellipse_min_as},${ellipse_pa}
+
+maths exp="<${prefix}_not_mask_mom0_blr>*<${prefix}_or_mask_mom0_blr_ellipse>" out=${prefix}_not_mask_mom0_blr_emasked
+maths exp="<${prefix}_or_mdiff_mom0>*<${prefix}_or_mask_mom0_blr_ellipse>" out=${prefix}_or_mdiff_mom0_emasked
+maths exp="<${prefix}_cdiff_masked_mom0_blr>*<${prefix}_or_mask_mom0_blr_ellipse>" out=${prefix}_cdiff_masked_mom0_blr_emasked
+
+fits in=${prefix}_not_mask_mom0_blr_emasked      op=xyout out=${prefix}_not_mask_mom0_blr_emasked.fits     
+fits in=${prefix}_or_mdiff_mom0_emasked         op=xyout out=${prefix}_or_mdiff_mom0_emasked.fits        
+fits in=${prefix}_cdiff_masked_mom0_blr_emasked op=xyout out=${prefix}_cdiff_masked_mom0_blr_emasked.fits
+
+getfluxnmass.py ${prefix}_or_mask_mom0.fits 7.01 ${distance}
+getfluxnmass.py ${prefix}_not_mask_mom0_blr_emasked.fits ${distance}
+getfluxnmass.py ${prefix}_or_mdiff_mom0_emasked.fits ${distance}
+getfluxnmass.py ${prefix}_cdiff_masked_mom0_blr_emasked.fits ${distance}
+
 rm -r ${prefix}_raw
 rm -r ${prefix}_model_raw
 rm -r ${prefix}
@@ -278,3 +332,15 @@ rm -r ${prefix}_or_mdiff_mom0
 #rm -r ${prefix}_or_mdiff_mom0.fits
 rm -r ${prefix}_or_mdiff_mom0_sol
 #rm -r ${prefix}_or_mdiff_mom0_sol.fits
+rm -r ${prefix}_optical_1
+rm -r ${prefix}_model_masked_mom0_blr_sol_reg
+rm -r ${prefix}_optical_1_masked
+rm -r ${prefix}_optical
+#rm -r ${prefix}_optical.fits
+rm -r ${prefix}_or_mask_mom0_blr_ellipse
+rm -r ${prefix}_not_mask_mom0_blr_emasked
+rm -r ${prefix}_or_mdiff_mom0_emasked
+rm -r ${prefix}_cdiff_masked_mom0_blr_emasked
+#rm -r ${prefix}_not_mask_mom0_blr_emasked.fits
+#rm -r ${prefix}_or_mdiff_mom0_emasked.fits
+#rm -r ${prefix}_cdiff_masked_mom0_blr_emasked.fits

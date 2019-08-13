@@ -75,7 +75,7 @@ def read2dim(hdu,plane):
     # Re-generate the thing
     return(fits.PrimaryHDU(data=newdata, header=hdu.header))
 
-def putcontours(F, hdu, i, contourlevs, contourcols = None, contourstyles = None, usepixel = False):
+def putcontours(F, hdu, i, contourlevs, contourcols = None, contourstyles = None, contourlinewidths = None, usepixel = False):
     """
     Helper to conturcalls sorting out contourlevels
     F is a aplpy graph, i is the contour-number, contourlevs the contour level (can be a list for each i one or a list of lists for each i a set of aontourlevels), contourcols the colors (can be None, a list, or a list of lists), contourstyles the contour-styles (again, None, a list, or a list of lists)). If usepixel == True, draws contours only using pixel coordinates, otherwise maps of different sizes can be overlaid.
@@ -106,7 +106,15 @@ def putcontours(F, hdu, i, contourlevs, contourcols = None, contourstyles = None
     else:
         styleshere = contourstyles
 
-    F.show_contour(data=hdu, levels = levelshere, colors = colorshere, linestyles = styleshere, usepixel = usepixel)
+    if type(contourlinewidths) == type([]):
+        if i < len(contourlinewidths):
+            contourshere = contourlinewidths[i]
+        else:
+            contourshere = contourlinewidths[-1]
+    else:
+        styleshere = contourstyles
+
+    F.show_contour(data=hdu, levels = levelshere, colors = colorshere, linewidths = contourlinewidths, linestyles = styleshere, usepixel = usepixel)
     return
 
 
@@ -258,7 +266,7 @@ def plotpvdiagrampositions(filename, centra, centdec, pa, majlen, minlen, mindis
         F.save(plotname)
     F.close()
 
-def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stretch = 'linear', cmap = None, invert = False, colorbar = False, frametickcolour = 'black', showscale = None, showscalelab = True, distance = 10, scaleunits = 'arcmin',  scale_borderpad = 1, scale_sep = 10, annotationfontsize = 'xx-large', suppress_xlab = False, suppress_ylab = False):
+def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stretch = 'linear', cmap = None, vmid = None, exponent = None, invert = False, colorbar = False, frametickcolour = 'black', frameticklinewidth = None, showscale = None, showscalelab = True, distance = 10, scaleunits = 'arcsec',  scale_borderpad = 1, scale_frame = False, scale_sep = 10, annotationfontsize = 'xx-large', suppress_xlab = False, suppress_ylab = False, scalebarlinewidth = 1, scalebarfontsize = None, scalebarcolor = 'black', aspect='equal'):
     """
     Prepare a plot, called by any plotting routine
 
@@ -269,11 +277,15 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
     pmax (float)            : Percentile maxiimum for colourscale, see aplpy
     stretch (str)           : Stretch scale, see aplpy
     cmap (str)              : Colour map, greyscale if None 
+    vmid (float)            : Baseline value used for the log and arcsinh stretches
+    exponent (float)        : If stretch is set to ‘power’, this is the exponent to use
     invert (bool)           : Invert scaling, only valid if cmap == None
     colorbar (bool)         : Add colour bar if True 
     frametickcolour (str)   : Colour of frames and ticks
+    frameticklinewidth (float)  : Linewidth of frames and ticks
     showscale (None, astropy quantity): Show a physical and angular scale bar if either an astropy distance (e.g. 1000.*u.pc) or an angle (e.g. 1*u.arcmin) is given
     showscalelab (bool)     : Show a label for the scale bar if True 
+    scale_frame (bool)      : Show frame around scale bar if True
     distance = 10,          : Distance of object to calculate scalebar length
     scaleunits = 'arcmin'   : Units used for the angle in the scale bar label
     scale_borderpad (float) : Distance of scalebar from the border
@@ -281,6 +293,7 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
     annotationfontsize (str): General font size
     suppress_xlab (bool)    : Suppress labeling of x-axis (axis- and tick labels)
     suppress_ylab = False   : Suppress labeling of y-axis (axis- and tick labels)
+    aspect ('str')          : See matplotlib ax.set_aspect
     """
     
     
@@ -301,9 +314,10 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
 
     F.ticks.set_length(10)  # points
     F.ticks.set_color(frametickcolour)  # points
+    F.ticks.set_linewidth(frameticklinewidth)  # points
 
 
-    kwargs = {'pmin': pmin, 'pmax': pmax, 'stretch': stretch}
+    kwargs = {'pmin': pmin, 'pmax': pmax, 'stretch': stretch, 'vmid' : vmid, 'exponent': exponent, 'aspect': aspect}
 
 #    print(vmin)
     if vmin != None:
@@ -344,22 +358,30 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
         try:
             physicalkpc = showscale.to(u.pc).value/1000.
             angular = u.arcsec*physicalkpc/arcsectokpc
-            text = '${0:.1f}\, \mathrm{{kpc}} \,\widehat{{=}} \,{1:.0f}{2:s}$'.format(physicalkpc, angular.value*scalehere, symbolhere)
+            text = r'$\bf{{{0:.1f}\, \mathrm{{\bf kpc}} \,\bf{{\widehat{{\bf{{=}}}}}} \,{1:.0f}{2:s}}}$'.format(physicalkpc, angular.value*scalehere, symbolhere)
         except:
             angular = showscale.to(u.arcsec)
             physical = (angular.value*arcsectokpc)
-            text = '${1:.0f}{2:s}\,\widehat{{=}}\, {0:.1f}\, \mathrm{{kpc}}$'.format(physical, angular.value*scalehere, symbolhere)
+            text = r'$\bf{{{1:.0f}{2:s}\,\widehat{{=}}\, {0:.1f}\, \mathrm{{kpc}}}}$'.format(physical, angular.value*scalehere, symbolhere)
         F.add_scalebar(angular)
         F.scalebar.show(angular, borderpad = scale_borderpad, sep = scale_sep)
-#        F.scalebar.set_frame(True)
+        F.scalebar.set_color(scalebarcolor)
+        if scale_frame == True:
+            F.scalebar.set_frame(True)
+            F.scalebar.set_alpha(0.7)
+        else:
+            F.scalebar.set_frame(False)
+            
         F.scalebar.set_corner('bottom right')
-        F.scalebar.set_linewidth(1)
-        F.scalebar.set_font(size = annotationfontsize, weight = 'medium', stretch = 'normal', family = 'serif', style = 'normal', variant = 'normal')
+        F.scalebar.set_linewidth(scalebarlinewidth)
+        if scalebarfontsize == None:
+            scalebarfontsize = annotationfontsize
+        F.scalebar.set_font(size = scalebarfontsize, weight = 'bold', stretch = 'normal', family = 'serif', style = 'normal', variant = 'normal')
         if showscalelab:
             F.scalebar.set_label(text)
     return
 
-def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basemap = None, vmin = None, vmax= None, pmin = 0, pmax = 1, stretch = 'linear', cmap = None, invert = False, colorbar = False, annotationfontsize = 'x-large', suppress_xlab = False, suppress_ylab = False, contoursets = [], contourcols = None,  contourstyles = None, contourlevs = [], frametickcolour = 'black', showbeam = False, showscale = None, showscalelab = True, distance = 10, scaleunits = 'arcmin', scale_borderpad = 1, scale_sep = 10, plane = 0, plotvelo = None, veloposx = 0.25, veloposy = 0.9):
+def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basemap = None, vmin = None, vmax= None, pmin = 0, pmax = 1, stretch = 'linear', vmid = None, exponent = None, cmap = None, invert = False, colorbar = False, annotationfontsize = 'x-large', suppress_xlab = False, suppress_ylab = False, contoursets = [], contourcols = None,  contourstyles = None, contourlevs = [], contourlinewidths = None, frametickcolour = 'black', frameticklinewidth = None, showbeam = False, showscale = None, showscalelab = True, scale_frame = False, distance = 10, scaleunits = 'arcsecs', scale_borderpad = 1, scale_sep = 10, plane = 0, plotvelo = None, veloposx = 0.25, veloposy = 0.9, scalebarlinewidth = 1, scalebarfontsize = None, scalebarcolor = 'black', aspect = 'equal'):
     """Plot one map
 
     Input:
@@ -382,9 +404,12 @@ def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basema
     contourlevs (list of float/lists)            : List of contours valid for all data sets in contoursets or list of lists of contours valid for each member of contoursets. If fewer controur level lists are given than contoursets, the last given contours are repeated for consecutive contoursets.
     contourcols (None, list, or list of lists)   : Colours corresponding to contourlevs
     contourstyles (None, lists, or list of lists): Contour styles corresponding to contourlevs (see aplpy description, e.g. 'solid' or 'dashed')
+    contourlinewidths (None, lists, or list of lists): Contour linewidths corresponding to contourlevs (see aplpy description, e.g. 'solid' or 'dashed')
     frametickcolour (str)                        : Colour of frames and ticks
+    frameticklinewidth (float)                   : Linewidth of frames and ticks
     showbeam (bool)                              : Show beam if True 
     showscale (bool)                             : Show a physical and angular scale bar
+    scale_frame (bool)                           : Show frame around scale bar if True
     showscalelab (bool)                          : Show a label for the scale bar if True 
     distance = 10,                               : Distance of object to calculate scalebar length
     scaleunits (str)                             : Units used for the angle in the scale bar label, arcsec or arcmin
@@ -447,7 +472,7 @@ def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basema
         F = aplpy.FITSFigure(hdu_mom, figsize = figsize)
     else:
         F = aplpy.FITSFigure(hdu_mom, figure=figure, subplot=subplot)
-    kwargs = {'vmin' : vmin, 'vmax': vmax, 'pmin' : pmin, 'pmax' : pmax, 'stretch' : stretch, 'cmap' : cmap, 'invert' : invert, 'colorbar' : colorbar, 'frametickcolour' : frametickcolour, 'annotationfontsize' : annotationfontsize, 'showscale' : showscale, 'distance' : distance, 'showscalelab' : showscalelab, 'scaleunits' : scaleunits, 'scale_borderpad': scale_borderpad, 'scale_sep': scale_sep, 'suppress_xlab' : suppress_xlab, 'suppress_ylab' : suppress_ylab}
+    kwargs = {'vmin' : vmin, 'vmax': vmax, 'pmin' : pmin, 'pmax' : pmax, 'stretch' : stretch, 'vmid' : vmid, 'exponent': exponent, 'cmap' : cmap, 'invert' : invert, 'colorbar' : colorbar, 'frametickcolour' : frametickcolour, 'frameticklinewidth' : frameticklinewidth, 'annotationfontsize' : annotationfontsize, 'showscale' : showscale, 'scale_frame': scale_frame, 'distance' : distance, 'showscalelab' : showscalelab, 'scaleunits' : scaleunits, 'scale_borderpad': scale_borderpad, 'scale_sep': scale_sep, 'suppress_xlab' : suppress_xlab, 'suppress_ylab' : suppress_ylab, 'scalebarlinewidth' : scalebarlinewidth, 'scalebarfontsize': scalebarfontsize, 'scalebarcolor': scalebarcolor, 'aspect': aspect}
     plotprep_general(F, **kwargs)
 
     if showbeam:
@@ -460,8 +485,8 @@ def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basema
         F.beam.set_alpha(0.5)
 
     if plotvelo != None:
-        velo = '${0:.1f}\,\mathrm{{km}}\,\mathrm{{s}}^{{-1}}$'.format(refvalvelo+cdeltvelo*(plane-refpixvelo+1))
-        F.add_label(veloposx, veloposy, velo, relative = True, size=annotationfontsize, weight = 'medium', stretch = 'normal', family = 'serif', style = 'normal', variant = 'normal', horizontalalignment='center', verticalalignment='center', color = 'black')
+        velo = r'${{\bf {0:.1f}}}\,\mathrm{{\bf{{km}}}}\,\mathrm{{\bf{{s}}}}^{{\bf{{-1}}}}$'.format(refvalvelo+cdeltvelo*(plane-refpixvelo+1))
+        F.add_label(veloposx, veloposy, velo, relative = True, size=annotationfontsize, weight = 'bold', stretch = 'normal', family = 'serif', style = 'normal', variant = 'normal', horizontalalignment='center', verticalalignment='center', color = 'black')
         
     for i in range(len(contoursets)):
         fitsfile_here = fits.open(contoursets[i])
@@ -469,17 +494,160 @@ def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basema
 
         # This is obsolete: OK, since this has taken me a day, I should describe it a bit. So in the method show_contour in aplpy there is a call to the method ax.get_transform(frame), where frame is the wcs frame of the data set. If this is a moment-0 map generated by Miriad, this has 3 dimensions which gets get_transform to fail. The local hack is to force usepixel to only use the pixel map, which means that the maps should have the same dimensions. Intrinsically one uses ax.contour(transform=ax.get_transform('pixel')) So aplpy has been modified for this...
 #        F.show_contour(hdu_here, levels = contourlevs, colors = contourcols[i], usepixel = True)
-        putcontours(F, hdu_here, i, contourlevs = contourlevs, contourcols = contourcols, contourstyles = contourstyles, usepixel = False)
+        putcontours(F, hdu_here, i, contourlevs = contourlevs, contourcols = contourcols, contourstyles = contourstyles, contourlinewidths = contourlinewidths, usepixel = False)
         #F.show_contour(hdu_here, levels = levelshere, colors = colorshere, linestyles = styleshere)
         
     F.ticks._ax.coords[F.ticks.x].ticks.set_tick_out(False)
     F.ticks._ax.coords[F.ticks.y].ticks.set_tick_out(False)
     F.frame.set_color(frametickcolour)
+    if frameticklinewidth != None:
+        F.frame.set_linewidth(frameticklinewidth)
     return F
 
-def plotmaps(width = 8.27, plotmargin = 0.1968504, labelmargin_left = 1.377953, labelmargin_bottom = 0.6889764, vmin = None, vmax= None, pmin = None, pmax = None, stretch = 'linear', cmap = None, invert = False, chans = None, nx = 0, ny =0, showscale = None, showbeam = True, showscalelab = True, reducescalelab = True, plotname = None, annotationplotsize = 'medium', individual = False, contoursets = None, contourlevs = None, contourcols = None, contourstyles = None, **kwargs):
+def putolays(F, olhere):
     """
-    Plot a grid of maps
+    Put overlays onto aplpy figure F
+
+    Input:
+    F (aplpy FITSfigure): Input figure to put overlays on
+    olhere (list)       : List of overlays
+
+    Uses aplpy to overlay figures on aplpy fits figure F. olhere is a
+    list of pairs [figurename (str), kwargs (dict)], where kwargs is a
+    dictionary of argument-value pairs. Some arguments in kwargs are required,
+    depending on the figure. Others are the kwargs passed to the
+    corresponding aplpy overlay function. putoverlays goes through
+    all members of the input list, adding the corresponding overlays on
+    F. The following table shows compulsory kwargs, and the aplpy
+    method that will be called. 
+
+    Example:
+    olhere = [['circle', {'pv_x_world' : 120, 'pv_y_world' : -30, 'radius': 0.001}]]
+    
+    For the corresponding description of
+    the parameters, see aplpy description
+    https://aplpy.readthedocs.io/en/stable/api/aplpy.FITSFigure.html
+
+    figurename   compulsory kwargs  corresponding aplpy method
+
+    'label'      pv_x_world (float or list) F.add_label(pv_x_world, pv_y_world, pv_label, **kwargs)
+                 pv_y_world (float or list)
+                 pv_label (str)
+
+    'markers'    pv_x_world (float or list) F.show_markers(pv_x_world, pv_y_world, **kwargs)
+                 pv_y_world (float or list)
+
+    'circles'    pv_x_world (float or list) F.show_circles(pv_x_world, pv_y_world, pv_radius, **kwargs)
+                 pv_y_world (float or list)
+                 pv_radius (float or list)
+
+    'ellipses'   pv_x_world (float or list) F.show_circles(pv_x_world, pv_y_world, pv_width, pv_height, **kwargs)
+                 pv_y_world (float or list)
+                 pv_width (float or list)
+                 pv_height (float or list)
+    
+    'rectangles' pv_x_world (float or list) F.show_rectangles(pv_x_world, pv_y_world, pv_width, pv_height, **kwargs)
+                 pv_y_world (float or list)
+                 pv_width (float or list)
+                 pv_height (float or list)
+
+    'arrows'     pv_x_world (float or list) F.show_arrows(pv_x_world, pv_y_world, pv_dx, pv_dy, **kwargs)
+                 pv_y_world (float or list)
+                 pv_dx (float or list)
+                 pv_dy (float or list)
+
+    """
+
+    # Lazy variant to get all the parameters for whichever overlay.
+    for overlay in olhere:
+        try:
+            label = overlay[1]['pv_label']
+            overlay[1].pop('pv_label')
+        except:
+            pass
+        try:
+            x_world = overlay[1]['pv_x_world']
+            overlay[1].pop('pv_x_world')
+        except:
+            pass
+        try:
+            y_world = overlay[1]['pv_y_world']
+            overlay[1].pop('pv_y_world')
+        except:
+            pass
+        try:
+            width   = overlay[1]['pv_width']
+            overlay[1].pop('pv_width')
+        except:
+            pass
+        try:
+            height  = overlay[1]['pv_height']
+            overlay[1].pop('pv_height')
+        except:
+            pass
+        try:
+            dx      = overlay[1]['pv_dx']
+            overlay[1].pop('pv_dx')
+        except:
+            pass
+        try:
+            dy      = overlay[1]['pv_dy']
+            overlay[1].pop('pv_dy')
+        except:
+            pass
+
+        # Now make the right overlay
+        if overlay[0] == 'label':
+            F.add_label(x_world, y_world, label, **overlay[1])
+
+        if overlay[0] == 'markers':
+            F.show_markers(x_world, y_world, **overlay[1])
+
+        if overlay[0] == 'circles':
+            F.show_circles(x_world, y_world, radius, **overlay[1])
+
+        if overlay[0] == 'ellipses':
+            F.show_ellipses(x_world, y_world, width, height, **overlay[1])
+    
+        if overlay[0] == 'rectangles':
+            F.show_rectangles(x_world, y_world, width, height, **overlay[1])
+
+        if overlay[0] == 'arrows':
+            F.show_arrows(x_world, y_world, dx, dy, **overlay[1])
+
+        # Then put them back
+        try:
+            overlay[1]['pv_label'] = label  
+        except:     
+            pass    
+        try:
+            overlay[1]['pv_x_world'] = x_world  
+        except:     
+            pass    
+        try:        
+            overlay[1]['pv_y_world'] = y_world 
+        except:     
+            pass    
+        try:        
+            overlay[1]['pv_width']   = width   
+        except:     
+            pass    
+        try:        
+            overlay[1]['pv_height']  = height  
+        except:     
+            pass    
+        try:        
+            overlay[1]['pv_dx']      = dx      
+        except:     
+            pass    
+        try:        
+            overlay[1]['pv_dy']      = dy      
+        except:
+            pass
+    return
+
+def plotmaps(width = 8.27, plotmargin = 0.1968504, labelmargin_left = 1.377953, labelmargin_bottom = 0.6889764, vmin = None, vmax= None, pmin = None, pmax = None, stretch = None, cmap = None, invert = False, chans = None, nx = 0, ny =0, showscale = None, showbeam = True, showscalelab = True, reducescalelab = True, plotname = None, annotationplotsize = 'medium', individual_maps = False, contoursets = None, contourlevs = None, contourcols = None, contourstyles = None, individual_olays = False, olays = None, **kwargs):
+    """Plot a grid of maps
     width (float)             : Width in inches, 8.27 is A4 width
     plotmargin (float)        : A margin around the whole plot, 0.1968504 is 0.5 cm
     labelmargin_left (float)  : An additional margin to the left, 1.377953 is 3.5 cm
@@ -502,12 +670,13 @@ def plotmaps(width = 8.27, plotmargin = 0.1968504, labelmargin_left = 1.377953, 
     annotationfontsize (str or number)           : General type size
     suppress_xlab (bool)                         : Generally suppress labeling of x-axis (axis- and tick labels)
     suppress_ylab (bool)                         : Generally suppress labeling of y-axis (axis- and tick labels)
-    individual (bool)                            : Instead of applying contoursets, contourlevs, contourcols, contourstyles for all data sets given, the corresponding quantities are given for each input cube in a list
+    individual_maps (bool)                   : Instead of applying contoursets, contourlevs, contourcols, contourstyles for all data sets given, the corresponding quantities are given for each input cube in a list
     contoursets (list of str or list of lists)   : List of data sets to generate contours from, which will be overlaid on background images
     contourlevs (list of float/lists)            : List of contours valid for all data sets in contoursets or list of lists of contours valid for each member of contoursets. If fewer controur level lists are given than contoursets, the last given contours are repeated for consecutive contoursets.
     contourcols (None, list, or list of lists)   : Colours corresponding to contourlevs
     contourstyles (None, lists, or list of lists): Contour styles corresponding to contourlevs (see aplpy description, e.g. 'solid' or 'dashed')
     frametickcolour (str)                        : Colour of frames and ticks
+    frameticklinewidth (float)                   : Linewidth of frames and ticks
     showbeam (bool)                              : Show beam if True 
     showscale (bool)                             : Show a physical and angular scale bar
     distance (float)                             : Distance of object to calculate scalebar length
@@ -516,6 +685,8 @@ def plotmaps(width = 8.27, plotmargin = 0.1968504, labelmargin_left = 1.377953, 
     plotvelo (None or str)                       : If a file is give, use the file to plot the velocity information corresponding to plane on the panel
     veloposx (float)                             : Relative position of velocity label on the panel, x
     veloposy (float)                             : Relative position of velocity label on the panel, y
+    indiviual_olays (bool)                       : Overlays to be interpreted as list, for each plane, or general
+    olays (None, list, or list of lists)         : Overlays to each plot, None, list, or list of pairs
     plotname (str)                               : Name of output plot
 
     Will create an nx x ny raster of panels with each panel being a
@@ -536,12 +707,25 @@ def plotmaps(width = 8.27, plotmargin = 0.1968504, labelmargin_left = 1.377953, 
     element.  If a plane does not exist, the last plane of the cube is
     shown, if a third axis does not exist, the image will be show. The
     list of data sets to overplot contours contoursets is valid for
-    all panels unless the parameter individual is set to True. In that case contoursets, contourlevs, contourcols, contourstyles are lists of the single quantities (or further lists), for each channel or basemap individually, with extrapolation being applied. Also here, the single planes are shown as listed in
-    chans.
+    all panels unless the parameter individual_maps is set to True. In that
+    case contoursets, contourlevs, contourcols, contourstyles are
+    lists of the single quantities (or further lists), for each
+    channel or basemap individually, with extrapolation being
+    applied. Also here, the single planes are shown as listed in
+    chans. The
+    list of scaling variables for the background image is valid for
+    all panels unless the parameter individual_maps is set to True. In that
+    case vmin, vmax, pmin, pmax, stretch, cmap, invert are
+    lists of the single quantities (or further lists), for each
+    channel or basemap individually, with extrapolation being
+    applied. Also here, the single planes are shown as listed in
+    chans. The same is true for olays with the switch individual_olays, which is either None, a list of
+    overlays or a list of lists of overlays. The latter is expected if
+    individual_olays == True. For the description of overlays see function
+    putolays.
 
     """
     print('Plotmaps')
-
     plt.rc('text', usetex=True)
 
     # Check if basemap is a list
@@ -700,7 +884,8 @@ def plotmaps(width = 8.27, plotmargin = 0.1968504, labelmargin_left = 1.377953, 
                   ['cmap',          cmap_intro],
                   ['invert',        invert_intro]
                   ]:
-            if individual:
+
+            if individual_maps and type(j[1]) == type([]):
                 if i < len(j[1]):
                     kwargs[j[0]] = j[1][i]
                 else:
@@ -710,6 +895,18 @@ def plotmaps(width = 8.27, plotmargin = 0.1968504, labelmargin_left = 1.377953, 
 
         F = plotmaps_prep(figure = fig, subplot=[lfow+posnx*pnow, btoh+posny*pnoh, pnow, pnoh], plane = chans[i], showscalelab = showscalelab_here, **kwargs)
         # F = aplpy.FITSFigure('bla_0.fits', figure=fig, subplot=[lfow+posnx*pnow, btoh+posny*pnoh, pnow, pnoh])
+
+        # Now care about the olays
+        if olays != None:
+            if individual_olays:
+                if i < len(olays):
+                    olhere = olays[i]
+                else:
+                    olhere = olays[-1]
+            else:
+                olhere = olays
+            putolays(F, olhere)
+
         F.axis_labels.hide_x()
         F.axis_labels.hide_y()
         if posnx != 0:
@@ -724,7 +921,7 @@ def plotmaps(width = 8.27, plotmargin = 0.1968504, labelmargin_left = 1.377953, 
         fig.savefig(plotname)
     return    
 
-def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pmax= None, stretch = 'default', cmap=None, invert = True, colorbar = False, annotationfontsize = 'x-large', contoursets = [], postfixes = ['_pvmaj.fits','_pvmin_left.fits', '_pvmin_cent.fits', '_pvmin_right.fits'], letters = ['A', 'B', 'C', 'D'], lettercol = 'black', contourcols = None, contourstyles = None, contourlevs = [], frametickcolour = '#555555', showbeam = True, beaminfoset = '', vres = 2, showscale = 1*u.arcmin, scaleunits = 'arcmin', distance = 7010000*u.pc, plotprefix = '', plotpostfix = '.pdf', figsize = None):
+def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pmax= None, stretch = 'default', cmap=None, invert = True, colorbar = False, annotationfontsize = 'x-large', contoursets = [], postfixes = ['_pvmaj.fits','_pvmin_left.fits', '_pvmin_cent.fits', '_pvmin_right.fits'], letters = ['A', 'B', 'C', 'D'], lettercol = 'black', contourcols = None, contourstyles = None, contourlevs = [], frametickcolour = '#555555', frameticklinewidth = None, showbeam = True, beaminfoset = '', vres = 2, showscale = 1*u.arcmin, scaleunits = 'arcsec', distance = 7010000*u.pc, plotprefix = '', plotpostfix = '.pdf', figsize = None, aspect = 'auto', contourlinewidths = 1, scalebarlinewidth = 1):
     """
     Plot a number of PV diagrams
 
@@ -746,6 +943,7 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
     letters (list of str)                        : List of strings to annotate output plots with
     lettercol (str)                              : Colour of strings to annotate output plots with
     frametickcolour (str)                        : Colour of frames and ticks
+    frameticklinewidth (str)                     : Linewidth of frames and ticks
     showbeam (bool)                              : Show beam if True 
     beaminfoset (str)                            : Name of data set to generate beam from 
     vres = 2                                     : Velocity resolutio in pixels
@@ -802,7 +1000,7 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
         fig = aplpy.FITSFigure(hdu, figsize = figsize)
         fig.set_system_latex(True)
 
-        kwargs = {'vmin' : vmin, 'vmax': vmax, 'pmin' : pmin, 'pmax' : pmax, 'stretch' : stretch, 'cmap' : cmap, 'invert' : invert, 'colorbar' : colorbar, 'frametickcolour' : frametickcolour, 'showscale' : showscale, 'distance' : distance, 'scaleunits' : scaleunits, 'annotationfontsize' : annotationfontsize}
+        kwargs = {'vmin' : vmin, 'vmax': vmax, 'pmin' : pmin, 'pmax' : pmax, 'stretch' : stretch, 'cmap' : cmap, 'invert' : invert, 'colorbar' : colorbar, 'frametickcolour' : frametickcolour, 'frameticklinewidth' : frameticklinewidth, 'showscale' : showscale, 'distance' : distance, 'scaleunits' : scaleunits, 'annotationfontsize' : annotationfontsize, 'aspect': aspect, 'scalebarlinewidth': scalebarlinewidth}
         plotprep_general(fig, **kwargs)
 
         fig.set_xaxis_coord_type('scalar')
@@ -824,7 +1022,7 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
             header['CRVAL2'] = header['CRVAL2']/1000.
 
             hdu = fits.PrimaryHDU(data=image,header=header)
-            putcontours(fig, hdu, contournumber, contourlevs, contourcols = contourcols, contourstyles = contourstyles, usepixel = True)
+            putcontours(fig, hdu, contournumber, contourlevs, contourlinewidths = contourlinewidths, contourcols = contourcols, contourstyles = contourstyles, usepixel = True)
             #fig.show_contour(data=hdu, colors=contourcols[contournumber], levels=contourlevs, usepixel = True)
             
         fig.add_label(0.95, 0.95, letters[posnum], relative = True, size=32, weight='bold', horizontalalignment='center', verticalalignment='center', color=lettercol)
@@ -836,7 +1034,7 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
             vb = hheader['CDELT3']
             vp = vb*vres/(1000.*header['CDELT2'])
             ax = matplotlib.pyplot.gca()
-            ax.set_aspect('equal')
+            #ax.set_aspect('equal')
             theartist = AnchoredEllipse(ax.transData, width=hp,
                                      height=vp, angle=0, loc='lower left',
                                      pad=0.5, borderpad=0.4,
@@ -855,11 +1053,12 @@ if __name__ == "__main__":
 
     # Plot data cube
     rms = 0.001
-    plotmaps(basemap=['eso149_original.fits'], vmin = -0.004, vmax = 0.08, stretch = 'sqrt', cmap=None, invert = True, colorbar = False, contoursets = ['eso149_original.fits', 'eso149_model.fits'], contourcols = [['#9494c3','DarkBlue','DarkBlue','DarkBlue','DarkBlue'],['#f2e4e8', 'DeepPink', 'DeepPink', 'DeepPink', 'DeepPink']], contourlevs = [[-2.*rms,2.*rms,4.*rms,8.*rms,16.*rms]], contourstyles = [['dashed','solid','solid','solid','solid']], frametickcolour = '#555555', showbeam = True, showscale = 3000.*u.pc, showscalelab = True, reducescalelab = True, scaleunits = 'arcsec', distance = 7010000*u.pc, scale_borderpad = 0.5, scale_sep = 5, plotname = 'ESO149-G003_data_cube_12.pdf', chans = [2+2*i for i in range(12)], annotationfontsize = 'small', plotvelo = 'eso149_original.fits', nx = 3, labelmargin_left = 0.6889765, labelmargin_bottom = 0.3444883)
+    # Draw ellipses only for a few planes
+    plotmaps(basemap=['eso149_original.fits'], individual_maps = False, vmin = -0.004, vmax = 0.08, stretch = 'sqrt', cmap=None, invert = True, colorbar = False, contoursets = ['eso149_original.fits', 'eso149_model.fits'], contourcols = [['#9494c3','DarkBlue','DarkBlue','DarkBlue','DarkBlue'],['#f2e4e8', 'DeepPink', 'DeepPink', 'DeepPink', 'DeepPink']], contourlevs = [[-2.*rms,2.*rms,4.*rms,8.*rms,16.*rms]], contourstyles = ['dashed','solid','solid','solid','solid'], frametickcolour = '#555555', showbeam = True, showscale = 4000.*u.pc, showscalelab = True, reducescalelab = True, scaleunits = 'arcsec', distance = 7010000*u.pc, scale_borderpad = 0.5, scale_sep = 5, plotname = 'ESO149-G003_data_cube_12.pdf', chans = [2+2*i for i in range(12)], annotationfontsize = 'small', plotvelo = 'eso149_original.fits', nx = 3, labelmargin_left = 0.6889765, labelmargin_bottom = 0.3444883, individual_olays = True, olays=[[],[],[],[],[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]],[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]],[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]],[],[],[],[],[]], frameticklinewidth = 2)
 
-    plotmaps(basemap=['eso149_original.fits'], vmin = -0.004, vmax = 0.08, stretch = 'sqrt', cmap=None, invert = True, colorbar = False, contoursets = ['eso149_original.fits', 'eso149_model.fits'], contourcols = [['#9494c3','DarkBlue','DarkBlue','DarkBlue','DarkBlue'],['#f2e4e8', 'DeepPink', 'DeepPink', 'DeepPink', 'DeepPink']], contourlevs = [[-2.*rms,2.*rms,4.*rms,8.*rms,16.*rms]], contourstyles = [['dashed','solid','solid','solid','solid']], frametickcolour = '#555555', showbeam = True, showscale = 3000.*u.pc, showscalelab = True, reducescalelab = True, scaleunits = 'arcsec', distance = 7010000*u.pc, scale_borderpad = 0.5, scale_sep = 5, plotname = 'ESO149-G003_data_cube_24.pdf', chans = [2+i for i in range(24)], annotationfontsize = 'medium', plotvelo = 'eso149_original.fits', veloposx = 0.3, veloposy = 0.85, nx = 4, labelmargin_left = 0.6889765, labelmargin_bottom = 0.3444883)
+    plotmaps(basemap=['eso149_original.fits'], individual_maps = False, vmin = -0.004, vmax = 0.08, stretch = 'sqrt', cmap=None, invert = True, colorbar = False, contoursets = ['eso149_original.fits', 'eso149_model.fits'], contourcols = [['#9494c3','DarkBlue','DarkBlue','DarkBlue','DarkBlue'],['#f2e4e8', 'DeepPink', 'DeepPink', 'DeepPink', 'DeepPink']], contourlevs = [[-2.*rms,2.*rms,4.*rms,8.*rms,16.*rms]], contourstyles = ['dashed','solid','solid','solid','solid'], frametickcolour = '#555555', showbeam = True, showscale = 4000.*u.pc, showscalelab = True, reducescalelab = True, scaleunits = 'arcsec', distance = 7010000*u.pc, scale_borderpad = 0.5, scale_sep = 5, plotname = 'ESO149-G003_data_cube_24.pdf', chans = [2+i for i in range(24)], annotationfontsize = 'small', plotvelo = 'eso149_original.fits', veloposx = 0.3, veloposy = 0.85, nx = 4, labelmargin_left = 0.6889765, labelmargin_bottom = 0.3444883, individual_olays = True, olays=[[],[],[],[],[],[],[],[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]],[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]],[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]],[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]],[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]],[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]],[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]],[]], frameticklinewidth = 2)
 
-    plotmaps(basemap='eso149_or_mask_mom0_sol.fits', vmin = -0.1, vmax = 14., pmin = 0.25, pmax= 99.75, stretch = 'sqrt', cmap= None, invert = True, colorbar = False, contoursets = ['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits'], annotationfontsize = 'xx-large', contourcols = ['DarkBlue','DeepPink'], contourlevs = [0.25,0.5,1.0,2.0,4.0,8.0], frametickcolour = '#555555', showbeam = True, showscale = 4000.*u.pc, distance = 7010000*u.pc, plotname = 'ESO149-G003_mom0.pdf')
+    plotmaps(basemap='eso149_or_mask_mom0_sol.fits', vmin = -0.1, vmax = 14., pmin = 0.25, pmax= 99.75, stretch = 'sqrt', cmap= None, invert = True, colorbar = False, contoursets = ['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits'], annotationfontsize = 'xx-large', contourcols = ['DarkBlue','DeepPink'], contourlevs = [0.25,0.5,1.0,2.0,4.0,8.0], frametickcolour = '#555555', showbeam = True, showscale = 4000.*u.pc, distance = 7010000*u.pc, plotname = 'ESO149-G003_mom0.pdf', olays=[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]], contourlinewidths = 2, scalebarlinewidth = 2, frameticklinewidth = 2)
 
     # This is to create contours around vsys
     nvelconts = 3
@@ -868,16 +1067,29 @@ if __name__ == "__main__":
     # These need to be real python float, not numpy, and a real list
     velcontourlevs = np.arange(vsys-nvelconts*svelconts,vsys+(nvelconts+1)*svelconts,svelconts).tolist()
 
-    plotmaps(basemap='eso149_or_mask_mom0_sol.fits', vmin = -0.1, vmax = 14., pmin = 0.25, pmax= 99.75, stretch = 'sqrt', cmap= None, invert = True, colorbar = False, contoursets = ['eso149_or_mask_mom1.fits', 'eso149_model_or_mask_mom1.fits'], annotationfontsize = 'xx-large', contourcols = ['DarkBlue','DeepPink'], contourlevs = [velcontourlevs], frametickcolour = '#555555', showbeam = True, showscale = 4000.*u.pc, distance = 7010000*u.pc, plotname = 'ESO149-G003_mom1.pdf')
+    plotmaps(basemap='eso149_or_mask_mom0_sol.fits', vmin = -0.1, vmax = 14., pmin = 0.25, pmax= 99.75, stretch = 'sqrt', cmap= None, invert = True, colorbar = False, contoursets = ['eso149_or_mask_mom1.fits', 'eso149_model_or_mask_mom1.fits'], annotationfontsize = 'xx-large', contourcols = ['DarkBlue','DeepPink'], contourlevs = [velcontourlevs], frametickcolour = '#555555', showbeam = True, showscale = 4000.*u.pc, distance = 7010000*u.pc, plotname = 'ESO149-G003_mom1.pdf', contourlinewidths = 2, scalebarlinewidth = 2)
     
-    plotmaps(basemap=['eso149_cdiff_mom0_sol.fits','eso149_or_mdiff_mom0_sol.fits','eso149_not_mask_mom0_sol.fits'], vmin = [-0.01,-0.01,-0.01], vmax = [1.4,1.4,0.7], pmin = [0.25], pmax= [99.75], stretch = ['sqrt'], cmap= [None], invert = [True], colorbar = False, individual = True, contoursets = [['eso149_cdiff_mom0_sol.fits'],['eso149_or_mdiff_mom0_sol.fits'],['eso149_not_mask_mom0_sol.fits']], annotationfontsize = 'medium', contourcols = [[['#9494c3','#9494c3','#9494c3','DarkBlue','DarkBlue']]], contourlevs = [[-0.5,-0.25, 0., 0.25,0.5]], contourstyles=[[['dashed', 'dashed', 'dashed', 'solid','solid']]], frametickcolour = '#555555', showbeam = True, showscale = 4000.*u.pc, distance = 7010000*u.pc, plotname = 'ESO149-G003_mom0diffs.pdf', nx = 3, labelmargin_left = 0.6889765, labelmargin_bottom = 0.3444883, scale_borderpad = 0.5, scale_sep = 5)
+    plotmaps(basemap=['eso149_cdiff_mom0_sol.fits','eso149_or_mdiff_mom0_sol.fits','eso149_not_mask_mom0_sol.fits'], vmin = [-0.01,-0.01,-0.01], vmax = [1.4,1.4,0.7], pmin = [0.25], pmax= [99.75], stretch = ['sqrt'], cmap= [None], invert = [True], colorbar = False, individual_maps = True, contoursets = [['eso149_cdiff_mom0_sol.fits'],['eso149_or_mdiff_mom0_sol.fits'],['eso149_not_mask_mom0_sol.fits']], annotationfontsize = 'medium', contourcols = [[['#9494c3','#9494c3','#9494c3','DarkBlue','DarkBlue']]], contourlevs = [[-0.5,-0.25, 0., 0.25,0.5]], contourstyles=[['dashed', 'dashed', 'dashed', 'solid','solid']], frametickcolour = '#555555', showbeam = True, showscale = 4000.*u.pc, distance = 7010000*u.pc, plotname = 'ESO149-G003_mom0diffs.pdf', nx = 3, labelmargin_left = 0.6889765, labelmargin_bottom = 0.3444883, scale_borderpad = 0.5, scale_sep = 5, olays=[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]], contourlinewidths = 2, scalebarlinewidth = 2)
+
+    filenames = []
+    for letter in ['u','g','q','r','i','z']:
+        filenames.append('median_stacked_eso_149_g003_optical_'+letter+'_corr_oldfash_nh.fits')
+
+    plotmaps(basemap=filenames, pmin = [4.,1.], pmax= [95], stretch = ['linear'], cmap= [None], invert = [True], colorbar = False, individual_maps = True, contoursets = [['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits']], annotationfontsize = 'medium', contourcols = [['DarkBlue','DeepPink']], contourlevs = [[1.0,4.0]], frametickcolour = '0.8', frameticklinewidth = 2, showbeam = False, showscale = 4000.*u.pc, distance = 7010000*u.pc, scale_frame = False, plotname = 'ESO149-G003_optical_meerlicht.pdf', nx = 3, labelmargin_left = 0.6889765, labelmargin_bottom = 0.3444883, scale_borderpad = 1.0, scale_sep = 5, olays=[[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'u', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]], [['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'g', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]], [['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'q', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]], [['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'r', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]], [['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'i', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]], [['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'z', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]]], scalebarcolor = 'white', individual_olays = True, contourlinewidths = 2, scalebarlinewidth = 2)
+
+    filenames = []
+    for letter in ['u','g','q','r','i','z']:
+        filenames.append('median_stacked_eso_149_g003_optical_'+letter+'_corr_oldfash_con_3.fits')
+        
+    plotmaps(basemap=filenames, pmin = [15., 5., 5., 4., 6., 7.], pmax= [98], stretch = ['linear'], cmap= [None], invert = [True], colorbar = False, individual_maps = True, contoursets = [['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits']], annotationfontsize = 'medium', contourcols = [['DarkBlue','DeepPink']], contourlevs = [[1.0,4.0]], frametickcolour = '0.8', frameticklinewidth = 2, showbeam = False, showscale = 4000.*u.pc, distance = 7010000*u.pc, scale_frame = False, plotname = 'ESO149-G003_optical_meerlicht_con_3.pdf', nx = 3, labelmargin_left = 0.6889765, labelmargin_bottom = 0.3444883, scale_borderpad = 1.0, scale_sep = 5, olays=[[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'u', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]], [['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'g', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]], [['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'q', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]], [['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'r', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]], [['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'i', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]], [['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}], ['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': 'z', 'relative' : True, 'size' : 24, 'weight' : 400, 'color': 'white'}]]], scalebarcolor = 'white', individual_olays = True, contourlinewidths = 2, scalebarlinewidth = 2)
+  
+    plotmaps(basemap=['eso149_optical_dss_r_conv_3_3.fits'], pmin = [5.,1.], pmax= [95], stretch = ['linear'], cmap= [None], invert = [True], colorbar = False, individual_maps = True, contoursets = [['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits']], annotationfontsize = 'xx-large', contourcols = [['DarkBlue','DeepPink']], contourlevs = [[1.0, 4.0]], frametickcolour = '0.8', frameticklinewidth = 2, showbeam = False, showscale = 4000.*u.pc, distance = 7010000*u.pc, scale_frame = False, scalebarfontsize = 20, scalebarcolor = 'white', contourlinewidths = 2, scalebarlinewidth = 2, plotname = 'ESO149-G003_optical_dss_r_con_3.pdf', nx = 1, scale_borderpad = 0.5, scale_sep = 5, olays=[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}]])
+    
+    plotmaps(basemap=['eso149_optical_dss_r.fits'], pmin = [5.,1.], pmax= [95], stretch = ['linear'], cmap= [None], invert = [True], colorbar = False, individual_maps = True, contoursets = [['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits']], annotationfontsize = 'xx-large', contourcols = [['DarkBlue','DeepPink']], contourlevs = [[1.0, 4.0]], frametickcolour = '0.8', frameticklinewidth = 2, showbeam = False, showscale = 4000.*u.pc, distance = 7010000*u.pc, scale_frame = False, scalebarfontsize = 20, scalebarcolor = 'white', contourlinewidths = 2, scalebarlinewidth = 2, plotname = 'ESO149-G003_optical_dss_r.pdf', nx = 1, scale_borderpad = 0.5, scale_sep = 5, olays=[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}]])
+    
+    plotmaps(basemap=['eso149_optical_dss_r.fits', 'eso149_optical_dss_r_conv_3_3.fits'], pmin = [5.,5.], pmax= [95], stretch = ['linear'], cmap= [None], invert = [True], colorbar = False, individual_maps = True, contoursets = [['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits']], annotationfontsize = 'x-large', contourcols = [['DarkBlue','DeepPink']], contourlevs = [[1.0, 4.0]], frametickcolour = '0.8', frameticklinewidth = 2, showbeam = False, showscale = 4000.*u.pc, distance = 7010000*u.pc, scale_frame = False, scalebarfontsize = 20, scalebarcolor = 'white', contourlinewidths = 2, scalebarlinewidth = 2, plotname = 'ESO149-G003_optical_dss_r.pdf', nx = 1, scale_borderpad = 0.5, scale_sep = 5, olays=[['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2}]])
     
     
-#    F = aplpy.FITSFigure('eso149_in.fits',slices=[29])
-#    F.show_grayscale()
-    # matplotlib.pyplot.show()
-    
-    mom0 = 'bla_0.fits'
     centre_ra= -1.98719660E+00
     centre_dec= -5.25764076E+01
     pa = +3.33388E+02
@@ -885,12 +1097,12 @@ if __name__ == "__main__":
     len_min = 30
     mindist = 8
     
-    plotpvdiagrampositions('eso149_in.fits', centre_ra, centre_dec, pa, len_maj, len_min, mindist, '0.4', basemap='eso149_or_mask_mom0_sol.fits', plane = 0, vmin = -0.1, vmax = 14., pmin = 0.25, pmax= 99.75, stretch = 'sqrt', cmap=None, invert = True, colorbar = False, annotationfontsize = 'xx-large', contoursets = ['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits'], contourcols = ['DarkBlue','DeepPink'], contourlevs = [0.25,0.5,1.0,2.0,4.0,8.0], frametickcolour = '#555555', showbeam = True, showscale = 4000*u.pc, distance = 7010000*u.pc, plotname = 'ESO149-G003_slicepositions.pdf', figsize = (8.27,8))
+    plotpvdiagrampositions('eso149_in.fits', centre_ra, centre_dec, pa, len_maj, len_min, mindist, '0.4', basemap='eso149_or_mask_mom0_sol.fits', plane = 0, vmin = -0.1, vmax = 14., pmin = 0.25, pmax= 99.75, stretch = 'sqrt', cmap=None, invert = True, colorbar = False, annotationfontsize = 'xx-large', contoursets = ['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits'], contourcols = ['DarkBlue','DeepPink'], contourlevs = [0.25,0.5,1.0,2.0,4.0,8.0], frametickcolour = '#555555', showbeam = True, showscale = 4000*u.pc, distance = 7010000*u.pc, plotname = 'ESO149-G003_slicepositions.pdf', figsize = (8.27,8), contourlinewidths = 2, scalebarlinewidth = 2, frameticklinewidth = 2)
 
     pvdiagrams('eso149_in.fits', 'original', centre_ra, centre_dec, pa, len_maj, len_min, mindist)
     pvdiagrams('final_eso149_out.fits', 'finalmodel', centre_ra, centre_dec, pa, len_maj, len_min, mindist)
 
     # Most explains itself, but the ellipse height is set to vres times the channel width in the beaminfoset
-    plotpvdiagrams(bgname_prefix = 'original', figsize = (8,8), vmin = None, vmax = 0.03, pmin = 0.25, pmax= 99.75, stretch = 'arcsinh', cmap=None, invert = True, colorbar = False, annotationfontsize = 'xx-large', contoursets = ['original','finalmodel'], postfixes = ['_pvmaj.fits','_pvmin_left.fits', '_pvmin_cent.fits', '_pvmin_right.fits'], letters = ['A', 'B', 'C', 'D'], lettercol = 'red', contourcols = ['DarkBlue','DeepPink'], contourlevs = [0.002,0.004,0.008,0.016,0.032], contourstyles=['solid','solid'], frametickcolour = '#555555', showbeam = True, beaminfoset = 'eso149_in.fits', vres = 2, showscale = 2000.*u.pc, scaleunits = 'arcsec', distance = 7010000*u.pc, plotprefix = 'ESO149-G003', plotpostfix = '.pdf')
+    plotpvdiagrams(bgname_prefix = 'original', figsize = (8,8), vmin = None, vmax = 0.03, pmin = 0.25, pmax= 99.75, stretch = 'arcsinh', cmap=None, invert = True, colorbar = False, annotationfontsize = 'xx-large', contoursets = ['original','finalmodel'], postfixes = ['_pvmaj.fits','_pvmin_left.fits', '_pvmin_cent.fits', '_pvmin_right.fits'], letters = ['A', 'B', 'C', 'D'], lettercol = 'red', contourcols = ['DarkBlue','DeepPink'], contourlevs = [0.002,0.004,0.008,0.016,0.032], contourstyles=['solid','solid'], frametickcolour = '#555555', showbeam = True, beaminfoset = 'eso149_in.fits', vres = 2, showscale = 2000.*u.pc, scaleunits = 'arcsec', distance = 7010000*u.pc, plotprefix = 'ESO149-G003', plotpostfix = '.pdf', aspect = 'auto', contourlinewidths = 2, scalebarlinewidth = 2, frameticklinewidth = 2)
 
     
