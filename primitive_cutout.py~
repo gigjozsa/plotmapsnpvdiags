@@ -1,0 +1,133 @@
+#! /usr/bin/env python
+from astropy.io import fits
+import astropy.wcs as wcs
+import numpy as np
+import scipy.signal as signal
+import sys
+from astropy.coordinates import SkyCoord
+from astropy import units as u
+
+def getkey(thedict, key):
+    for i in sys.argv[1:]:
+        splitted = i.split('=')
+        #print(splitted, key, splitted[0])
+        if key == splitted[0]:
+            thedict[key] = splitted[1]
+    try:
+        thedict[key]
+    except:
+        raise(BaseException)
+
+kvdict = {}
+    
+try:
+    getkey(kvdict,'infile')
+except:
+    print('Provide infile')
+    raise(BaseException)
+
+try:
+    getkey(kvdict,'tempfile')
+
+except:
+    try:
+        getkey(kvdict,'ramax')
+        kvdict['ramax'] = float(kvdict['ramax'])
+    except:
+        print('Provide higher right ascension ramax')
+        raise(BaseException)
+
+    try:
+        getkey(kvdict,'ramin')
+        kvdict['ramin'] = float(kvdict['ramin'])
+    except:
+        print('Provide lower right ascension ramin')
+        raise(BaseException)
+
+    try:
+        getkey(kvdict,'demax')
+        kvdict['demax'] = float(kvdict['demax'])
+    except:
+        print('Provide higher declination demax')
+        raise(BaseException)
+
+    try:
+        getkey(kvdict,'demin')
+        kvdict['demin'] = float(kvdict['demin'])
+    except:
+        print('Provide lower declination demin')
+        raise(BaseException)
+
+try:
+    getkey(kvdict,'outfile')
+except:
+    print('Provide output file outfile')
+    raise(BaseException)
+
+# Open hdu
+hdu = fits.open(kvdict['infile'])[0]
+w = wcs.WCS(hdu.header, naxis=2)
+
+if 'tempfile' in kvdict.keys():
+    # Get info
+    hduinfo = fits.open(kvdict['tempfile'])[0]
+    nyps = hduinfo.shape[-2]
+    nxps = hduinfo.shape[-1]
+    wnew = wcs.WCS(hduinfo.header, naxis=2)
+    solution = wnew.wcs_pix2world(nxps,nyps,0)
+    kvdict['ramin'] = float(solution[0])
+    kvdict['demax'] = float(solution[1])
+    solution = wnew.wcs_pix2world(0,0,0)
+    kvdict['ramax'] = float(solution[0])
+    kvdict['demin'] = float(solution[1])
+
+    #print(solution)
+    #solution = w.wcs_pix2world(50.,600.,0)
+    #print(solution)
+    #c = SkyCoord(ra=solution[0]*u.degree, dec=solution[1]*u.degree)
+    #print(c.to_string('hmsdms'))
+
+
+
+pixcoords_xmin, pixcoords_ymin = w.wcs_world2pix(kvdict['ramax'],kvdict['demin'], 0)
+pixcoords_xmax, pixcoords_ymax = w.wcs_world2pix(kvdict['ramin'],kvdict['demax'], 0)
+theshape = hdu.data.shape
+sizey = theshape[-2]
+sizex = theshape[-1]
+
+if pixcoords_xmin < 0.:
+    print('Box out of image')
+    raise(BaseException)
+if pixcoords_ymin < 0.:
+    print('Box out of image')
+    raise(BaseException)
+if pixcoords_xmax > sizex-1.:
+    print('Box out of image')
+    raise(BaseException)
+if pixcoords_ymax > sizey-1.:
+    print('Box out of image')
+    raise(BaseException)
+
+datanew = hdu.data[int(pixcoords_ymin):int(pixcoords_ymax), int(pixcoords_xmin):int(pixcoords_xmax)]
+
+newhdu = fits.PrimaryHDU(datanew)
+for i in hdu.header.keys():
+        try:
+            newhdu.header[i]  = hdu.header[i]
+        except:
+            pass
+        
+newhdu.header['CRPIX1'] =  hdu.header['CRPIX1']-pixcoords_xmin
+newhdu.header['CRPIX2'] =  hdu.header['CRPIX2']-pixcoords_ymin
+newhdu.header['DATAMAX'] = datanew.min()
+newhdu.header['DATAMIN'] = datanew.max()
+
+newhdu.writeto(kvdict['outfile'], overwrite=True, output_verify = 'ignore')
+
+#print(pixcoords_xmin, pixcoords_ymin, pixcoords_xmax, pixcoords_ymax)
+#solution = w.wcs_pix2world(10.,400.,0)
+#print(solution)
+#solution = w.wcs_pix2world(50.,600.,0)
+#print(solution)
+#c = SkyCoord(ra=solution[0]*u.degree, dec=solution[1]*u.degree)
+#print(c.to_string('hmsdms'))
