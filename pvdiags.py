@@ -408,7 +408,7 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
     """
     
     
-    F.set_system_latex(True)
+#    F.set_system_latex(True)
     if suppress_xlab:
         F.axis_labels.hide_x()
         F.tick_labels.hide_x()
@@ -1369,7 +1369,7 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
         header.set('BPA', 0.)
         hdu = fits.PrimaryHDU(data=image,header=header)
         fig = aplpy.FITSFigure(hdu, figsize = figsize)
-        fig.set_system_latex(True)
+#        fig.set_system_latex(True)
         if reducescalelab:
             if posnum > 0:
                 scale_ffc = None
