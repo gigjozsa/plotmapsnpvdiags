@@ -140,15 +140,7 @@ class Slastroplot:
 
         # General background
         if background == 'bright':
-            self.scale_ffc = None
-            self.scale_ffa = 0.7
-            self.scale_fec = '0.7'
-            self.scale_fea = 1.
-
-            self.velbbfc = self.scale_ffc
-            self.velbbec = self.scale_fec
-            self.velbbfa = self.scale_ffa
-            self.velbbea = self.scale_fea
+            pass
         elif background == 'dark':
             self.scale_ffc = 'white'
             self.scale_ffa = 0.7
@@ -162,104 +154,11 @@ class Slastroplot:
 
                 
         if self.nx == 1:
-            self.labelmargin_left = 3.0*cm_in_inch # default/2
-            self.labelmargin_bottom = 1.7*cm_in_inch # default/2
-
-            self.annotationfontsize = 'xx-large'
-
-            self.frameticklinewidth = 2
-            self.frameticklength = 7.5
-            
-            # Colourbar and lengths
-            if self.colourbar:
-                self.colourbar_width = 0.25
-                self.colourbar_pad = 0.05
-                self.veloposx = 0.145
-                self.veloposy = 0.95
-                self.labelmargin_top = 0.25*cm_in_inch
-
-                if self.colourbar_label != None:
-                    self.labelmargin_right = 2.35*cm_in_inch
-                else:
-                    self.labelmargin_right = 1.75*cm_in_inch
-            else:
-                self.veloposx = 0.1325
-                self.veloposy = 0.95
-                self.labelmargin_top = 0.
-                self.labelmargin_right = 0.
-
-            self.scale_borderpad = 1.25
-            self.scale_sep = 7.5
-            self.scalebarlinewidth = 2
-            self.scalebarfontsize = self.annotationfontsize
-
-            self.velofontsize = self.annotationfontsize
+            pass
         elif self.nx == 2:
-            self.labelmargin_left = 2.2*cm_in_inch # default/2
-            self.labelmargin_bottom = 1.2*cm_in_inch # default/2
-
-            self.annotationfontsize = 'large'
-
-            self.frameticklinewidth = 2
-            self.frameticklength = 6.5
-            
-            # Colourbar and lengths
-            if self.colourbar:
-                self.colourbar_width = 0.175
-                self.colourbar_pad = 0.05
-                self.veloposx = 0.2
-                self.veloposy = 0.925
-                self.labelmargin_top = 0.125*cm_in_inch
-
-                if self.colourbar_label != None:
-                    self.labelmargin_right = 2.3*cm_in_inch
-                else:
-                    self.labelmargin_right = 1.75*cm_in_inch
-            else:
-                self.veloposx = 0.175
-                self.veloposy = 0.935
-                self.labelmargin_top = 0.
-                self.labelmargin_right = 0.
-
-            self.scale_borderpad = 0.85
-            self.scale_sep = 6.5
-            self.scalebarlinewidth = 2
-            self.scalebarfontsize = self.annotationfontsize
-
-            self.velofontsize = self.annotationfontsize
+            pass
         elif self.nx == 3:
-            self.labelmargin_left = 1.9*cm_in_inch # default/2
-            self.labelmargin_bottom = 1.025*cm_in_inch # default/2
-
-            self.annotationfontsize = 'medium'
-
-            self.frameticklinewidth = 2
-            self.frameticklength = 6
-            
-            # Colourbar and lengths
-            if self.colourbar:
-                self.colourbar_width = 0.15
-                self.colourbar_pad = 0.05
-                self.veloposx = 0.26
-                self.veloposy = 0.9
-                self.labelmargin_top = 0.135*cm_in_inch
-
-                if self.colourbar_label != None:
-                    self.labelmargin_right = 1.9*cm_in_inch
-                else:
-                    self.labelmargin_right = 1.3*cm_in_inch
-            else:
-                self.veloposx = 0.235
-                self.veloposy = 0.91
-                self.labelmargin_top = 0.
-                self.labelmargin_right = 0.
-
-            self.scale_borderpad = 0.75
-            self.scale_sep = 6
-            self.scalebarlinewidth = 2
-            self.scalebarfontsize = self.annotationfontsize
-
-            self.velofontsize = self.annotationfontsize
+            pass
         else:
             self.labelmargin_left = 1.75*cm_in_inch # default/2
             self.labelmargin_bottom = 0.875*cm_in_inch # default/2
@@ -273,26 +172,21 @@ class Slastroplot:
             if self.colourbar:
                 self.colourbar_width = 0.1
                 self.colourbar_pad = 0.05
-                self.veloposx = 0.3
-                self.veloposy = 0.89
-                self.labelmargin_top = 0.125*cm_in_inch
 
+                print(self.colourbar_label)
                 if self.colourbar_label != None:
-                    self.labelmargin_right = 1.65*cm_in_inch
+                    self.labelmargin_right = 1.75*cm_in_inch
                 else:
                     self.labelmargin_right = 1.25*cm_in_inch
-            else:
-                self.veloposx = 0.275
-                self.veloposy = 0.9
-                self.labelmargin_top = 0.
-                self.labelmargin_right = 0.
 
-            self.scale_borderpad = 0.7
+            self.scale_borderpad = 0.5
             self.scale_sep = 5
             self.scalebarlinewidth = 2
             self.scalebarfontsize = self.annotationfontsize
 
             self.velofontsize = self.annotationfontsize
+            self.veloposx = 0.25
+            self.veloposy = 0.9
         
         return
     
@@ -723,7 +617,6 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
 
     if colourbar:
         F.add_colorbar()
-        #F.set_system_latex(False)
         F.colorbar.set_width(colourbar_width)
         F.colorbar.set_pad(colourbar_pad)
         F.colorbar.set_frame_linewidth(frameticklinewidth)
@@ -847,7 +740,7 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
             F.scalebar.set_label(text)
     return
 
-def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basemap = None, vmin = None, vmax= None, pmin = 0, pmax = 1, stretch = 'linear', vmid = None, exponent = None, cmap = None, invert = False, colourbar = False, colourbar_label = None, colourbar_width = 0.2, colourbar_pad = 0.05, annotationfontsize = 'x-large', suppress_xlab = False, suppress_ylab = False, contoursets = [], contourcols = None,  contourstyles = None, contouralphas = None, contourlevs = [], contourlinewidths = None, frametickcolour = 'black', frameticklinewidth = None, frameticklength = None, showbeam = False, beamfc = '0.7', beamfa = 0.5, beamec = 'black', beamea = 1., showscale = None, showscalelab = True, distance = 10, scaleunits = 'arcsecs', scale_borderpad = 1, scale_sep = 10, scale_ffc = None, scale_ffa = 1.0, scale_fec = None, scale_fea = 1.0, plane = 0, plotvelo = None, velofontsize = None, veloposx = 0.25, veloposy = 0.9, velbbfc = None, velbbec = None, velbbfa = 1, velbbea = 1, scalebarlinewidth = 1, scalebarfontsize = None, scalebarcolor = 'black', aspect = 'equal',):
+def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basemap = None, vmin = None, vmax= None, pmin = 0, pmax = 1, stretch = 'linear', vmid = None, exponent = None, cmap = None, invert = False, colourbar = False, colourbar_label = None, colourbar_width = 0.2, colourbar_pad = 0.05, annotationfontsize = 'x-large', suppress_xlab = False, suppress_ylab = False, contoursets = [], contourcols = None,  contourstyles = None, contouralphas = None, contourlevs = [], contourlinewidths = None, frametickcolour = 'black', frameticklinewidth = None, frameticklength = None, showbeam = False, beamfc = '0.7', beamfa = 0.5, beamec = 'black', beamea = 1., showscale = None, showscalelab = True, distance = 10, scaleunits = 'arcsecs', scale_borderpad = 1, scale_sep = 10, scale_ffc = None, scale_ffa = 1.0, scale_fec = None, scale_fea = 1.0, plane = 0, plotvelo = None, velofontsize = None, veloposx = 0.25, veloposy = 0.9, velbbfc = None, velbbec = None, velbbfa = 1, velbbea = 1, scalebarlinewidth = 1, scalebarfontsize = None, scalebarcolor = 'black', aspect = 'equal'):
     """
     Plot one map
 
@@ -1252,7 +1145,7 @@ def putolays(F, olhere):
             pass
     return
 
-def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_left = 3.5*cm_in_inch, labelmargin_bottom = 1.75*cm_in_inch, labelmargin_right = 0., labelmargin_top = 0., vmin = None, vmax= None, pmin = None, pmax = None, stretch = None, cmap = None, colourbar = False, colourbar_width = 0.2, colourbar_pad = 0.05, invert = False, chans = None, nx = 0, ny =0, showscale = None, showbeam = True, showscalelab = True, reducescalelab = True, plotname = None, individual_maps = False, contoursets = None, contourlevs = None, contourcols = None, contourstyles = None, contouralphas = None, individual_olays = False, olays = None, **kwargs):
+def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_left = 3.5*cm_in_inch, labelmargin_bottom = 1.75*cm_in_inch, labelmargin_right = 0., vmin = None, vmax= None, pmin = None, pmax = None, stretch = None, cmap = None, colourbar = False, colourbar_width = 0.2, colourbar_pad = 0.05, invert = False, chans = None, nx = 0, ny =0, showscale = None, showbeam = True, showscalelab = True, reducescalelab = True, plotname = None, individual_maps = False, contoursets = None, contourlevs = None, contourcols = None, contourstyles = None, contouralphas = None, individual_olays = False, olays = None, **kwargs):
     """
 
     Plot a grid of maps
@@ -1392,10 +1285,10 @@ def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_l
     shiftwidth = (width-labelmargin_left-2.*plotmargin-labelmargin_right)/float(nx)
     
     # Height of a single panel, in inches
-    sheight = (swidth-adwidth)/x_over_y
+    sheight = swidth/x_over_y
                  
     # Plot height in inches
-    plotheight = labelmargin_bottom+2.*plotmargin+ny*sheight+labelmargin_top
+    plotheight = labelmargin_bottom+2.*plotmargin+ny*sheight
 
     fig = plt.figure(figsize=(width, plotheight))
 
@@ -1567,11 +1460,10 @@ def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_l
         fig.savefig(plotname)
     return    
 
-def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pmax= None, stretch = 'default', cmap=None, invert = True, colourbar = False, annotationfontsize = 'x-large', contoursets = [], postfixes = ['_pvmaj.fits','_pvmin_left.fits', '_pvmin_cent.fits', '_pvmin_right.fits'], letters = ['A', 'B', 'C', 'D'], lettercol = 'black', contourcols = None, contourstyles = None, contouralphas = None, contourlevs = [], frametickcolour = '#555555', frameticklinewidth = None, frameticklength = None, showbeam = True, beaminfoset = '', vres = 2, showscale = 1*u.arcmin, scaleunits = 'arcsec', distance = 7010000*u.pc, scale_borderpad = 1, scale_sep = 10, scale_ffc = None, scale_ffa = 1.0, scale_fec = None, scale_fea = 1.0, plotprefix = '', plotpostfix = '.pdf', figsize = None, aspect = 'auto', contourlinewidths = 1, scalebarlinewidth = 1, scalebarcolor = 'black', letterfontsize = 32, letterposx = 0.95, letterposy = 0.95, letter_ffc = None, letter_ffa = 0., letter_fec = None, letter_fea = 1., scalebarfontsize = 'medium', beamfc = '0.7', beamfa = 0.5, beamec = 'black', beamea = 1., showscalelab = True, reducescalelab = True, borderleft = 1.25, borderbottom = 1.25, borderright = 0., bordertop = 0.):
+def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pmax= None, stretch = 'default', cmap=None, invert = True, colourbar = False, annotationfontsize = 'x-large', contoursets = [], postfixes = ['_pvmaj.fits','_pvmin_left.fits', '_pvmin_cent.fits', '_pvmin_right.fits'], letters = ['A', 'B', 'C', 'D'], lettercol = 'black', contourcols = None, contourstyles = None, contouralphas = None, contourlevs = [], frametickcolour = '#555555', frameticklinewidth = None, frameticklength = None, showbeam = True, beaminfoset = '', vres = 2, showscale = 1*u.arcmin, scaleunits = 'arcsec', distance = 7010000*u.pc, scale_borderpad = 1, scale_sep = 10, scale_ffc = None, scale_ffa = 1.0, scale_fec = None, scale_fea = 1.0, plotprefix = '', plotpostfix = '.pdf', figsize = None, aspect = 'auto', contourlinewidths = 1, scalebarlinewidth = 1, scalebarcolor = 'black', letterfontsize = 32, letterposx = 0.95, letterposy = 0.95, letter_ffc = None, letter_ffa = 0., letter_fec = None, letter_fea = 1., scalebarfontsize = 'medium', beamfc = '0.7', beamfa = 0.5, beamec = 'black', beamea = 1., showscalelab = True, reducescalelab = True):
     """
     Plot a number of PV diagrams
 
-    plotmargin (float)                           : A margin around the whole plots, 0.1968504 is 0.5 cm
     bgname_prefix (str)                          : Name prefix of background fits files
     vmin (float)                                 : Minimum for colourscale, see aplpy
     vmax (float)                                 : Maximum for colourscale, see aplpy
@@ -1621,19 +1513,12 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
     files phew_maj_o_o_f.png and phew_min_o_o_f.png.
 
     """
-    
+
     print('Plotpvdiagrams')
     plt.rc('text', usetex=True)
 
     levels = contourlevs
-
-    if figsize == None:
-        figsize = (A4widht_in_inch, A4widht_in_inch)
-    borderleft = (borderleft*cm_in_inch)/figsize[0]
-    borderright = (borderright*cm_in_inch)/figsize[0]
-    bordertop = (bordertop*cm_in_inch)/figsize[1]
-    borderbottom = (borderbottom*cm_in_inch)/figsize[1]
-
+    
     for posnum in range(len(postfixes)):
         name = postfixes[posnum]
         letter = letters[posnum]
@@ -1653,12 +1538,7 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
         header.set('BMIN', 0.008)
         header.set('BPA', 0.)
         hdu = fits.PrimaryHDU(data=image,header=header)
-        #fig = aplpy.FITSFigure(hdu, figsize = figsize)
-        figure = plt.figure(figsize=figsize)
-        fig = aplpy.FITSFigure(hdu, figure=figure, subplot=[borderleft,borderbottom,1.-borderleft+borderright,1.-bordertop-borderbottom])
-        # To make sure that the background is white, just as the labels
-        # fig.patch.set_facecolor('white')
-
+        fig = aplpy.FITSFigure(hdu, figsize = figsize)
 #        fig.set_system_latex(True)
         if reducescalelab:
             if posnum > 0:
@@ -1744,58 +1624,88 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
 
             fig.ax.add_artist(theartist)
 
-        figure.savefig(name+plotpostfix)
+        fig.save(name+plotpostfix)
         fig.close()
-        plt.close()
         
 if __name__ == "__main__":
-    import copy
 
     a = Slastroplot()
+    a.getthedict()
+    sys.exit()
+    
+    # General settings
+    # cm_in_inch = 0.3937008
+
+    # A4widht_in_inch
+    # A4widht_in_inch = 8.27
+
+    labelmargin_left = 1.75*cm_in_inch # default/2
+    labelmargin_bottom = 0.875*cm_in_inch # default/2
+    labelmargin_right = 0.0*cm_in_inch # default
+    plotmargin = 0.5*cm_in_inch # default
+    # frametickcolour = '#555555'
+    frametickcolour = 'black'
+    frameticklength = 5
+    frameticklinewidth = 2
+    annotationfontsize = 'small'
+
+    # General settings for map format
+    individual_maps = False # Indicating if contours and pixelmap formats are for each map/plane or for all
+    vmin = -0.004
+    vmax = 0.08
+    stretch = 'sqrt'
+    cmap = None
+    invert = True
+    colourbar = False
+
+    # General setting to show the beam
+    showbeam = True
+    
+    # These are defaults anyway
+    #beamfc = 0.7
+    #beamfa = 0.5
+    #beamec = 'black'
+    #beamea = 1.
 
     # General setting to show the scale
-    a.showscale = 4000.*u.pc
-    a.distance = 7010000*u.pc
-
+    showscale = 4000.*u.pc
+    showscalelab = True
+    reducescalelab = True
+    scaleunits = 'arcsec'
+    distance = 7010000*u.pc
+    scale_borderpad = 0.5
+    scale_sep = 5
+    scale_ffc = 'white'
+    scale_ffa = 0.7
+    scale_fec = '0.7'
+    scale_fea = 1.
+    scalebarfontsize = annotationfontsize
     # Common overlays
     eh = ['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'black', 'linewidth': 2}]
     # Mark the centre
     mh = ['markers',{'pv_x_world': [358.0128034], 'pv_y_world': [-5.2576952E+01], 'marker':'x', 'linewidth': 2, 's': 75, 'c': '0.9'}]
-    mhbl = copy.deepcopy(mh)
-    mhbl[1]['c'] = '0.1'
-    #['markers',{'pv_x_world': [358.0128034], 'pv_y_world': [-5.2576952E+01], 'marker':'x', 'linewidth': 2, 's': 75, 'c': '0.1'}]
 
-    # Generally only one colourbar
-    a.colourbar = False
-    a.colourbar_label = None
-
-    ###
-    ###
-    # Cubes
-    ###
-    ###
-
-    # Velocity information and plotting
-    a.plotvelo = 'eso149_original.fits'
-
+    # Info for cubes, general
+    
     # The maps to plot
-    a.basemap=['eso149_original.fits']
-    a.individual_maps = False # Indicating if contours and pixelmap formats are for each map/plane or for all
-
-    a.vmin = -0.004
-    a.vmax = 0.08
-    a.stretch = 'sqrt'
-    a.cmap = None
-    a.invert = True
+    basemap=['eso149_original.fits']
 
     # The contours to plot
-    a.contoursets = ['eso149_original.fits', 'eso149_model.fits']
-    a.contourcols = [['#9494c3','DarkBlue','DarkBlue','DarkBlue','DarkBlue','DarkBlue'],['#f2e4e8','DeepPink','DeepPink','DeepPink','DeepPink','DeepPink']]
+    contoursets = ['eso149_original.fits', 'eso149_model.fits']
+    contourcols = [['#9494c3','DarkBlue','DarkBlue','DarkBlue','DarkBlue'],['#f2e4e8','DeepPink','DeepPink','DeepPink','DeepPink']]
     rms = 0.001
-    a.contourlevs = [[-2.*rms,2.*rms,4.*rms,8.*rms,16.*rms,32.*rms]]
-    a.contourstyles = [['dashed','solid','solid','solid','solid','solid']]
-    a.contourlinewidths = [2,1.4]
+    contourlevs = [[-2.*rms,2.*rms,4.*rms,8.*rms,16.*rms]]
+    contourstyles = ['dashed','solid','solid','solid','solid']
 
+    # Velocity information and plotting
+    plotvelo = 'eso149_original.fits'
+    velbbfc = scale_ffc
+    velbbec = scale_fec
+    velbbfa = scale_ffa
+    velbbea = scale_fea
+    veloposx = 0.29
+    veloposy = 0.89
+      
     ###
     ###
     # Cube 12 channels
@@ -1803,429 +1713,65 @@ if __name__ == "__main__":
     ###
 
     # Things private to this plot
-    a.plotname = 'ESO149-G003_data_cube_12.pdf'
-    a.chans = [2+2*i for i in range(12)]
-    a.individual_olays = True
-    a.olays=[[mh],[mh],[mh],[mh],[mh,eh],[mh,eh],[mh,eh],[mh],[mh],[mh],[mh],[mh]]
-    a.nx = 4
+    plotname = 'ESO149-G003_data_cube_12.pdf'
+    chans = [2+2*i for i in range(12)]
+    nx = 4
+    individual_olays = True
+    olays=[[mh],[mh],[mh],[mh],[mh,eh],[mh,eh],[mh,eh],[mh],[mh],[mh],[mh],[mh]]
+    
+    plotmaps(basemap=basemap, individual_maps = individual_maps, vmin = vmin, vmax = vmax, stretch = stretch, cmap=cmap, invert = invert, colourbar = colourbar, contoursets = contoursets, contourcols = contourcols, contourlevs = contourlevs, contourstyles = contourstyles, frametickcolour = frametickcolour, frameticklength = frameticklength, showbeam = showbeam, showscale = showscale, showscalelab = showscalelab, reducescalelab = reducescalelab, scaleunits = scaleunits, distance = distance, scale_borderpad = scale_borderpad, scale_sep = scale_sep, scale_ffc = scale_ffc, scale_ffa = scale_ffa, scale_fec = scale_fec, scale_fea = scale_fea, plotname = plotname, chans = chans, annotationfontsize = annotationfontsize, plotvelo = plotvelo, velbbfc = velbbfc, velbbec = velbbec, velbbfa = velbbfa, veloposx = veloposx, veloposy = veloposy, nx = nx, plotmargin=plotmargin, labelmargin_left = labelmargin_left, labelmargin_bottom = labelmargin_bottom, labelmargin_right= labelmargin_right, individual_olays = individual_olays, olays=olays, frameticklinewidth = frameticklinewidth)
 
-    # Always do this
-    a.set_standard(border = False, background = 'dark')
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Cube 24 channels
-    ###
-    ###
-
-    a.chans = [2+i for i in range(24)]
-    a.olays=[[mh],[mh],[mh],[mh],[mh],[mh],[mh],[mh,eh],[mh,eh],[mh,eh],[mh,eh],[mh,eh],[mh,eh],[mh,eh],[mh]]
-    a.plotname = 'ESO149-G003_data_cube_24.pdf'
-
-    a.set_standard(border = False, background = 'dark')
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Cube 24 channels, only observations
-    ###
-    ###
-
-    a.chans = [2+i for i in range(24)]
-    a.olays=[[mh]]
-    # The contours to plot
-    a.contoursets = ['eso149_original.fits']
-    a.contourcols = [['#9494c3','DarkBlue','DarkBlue','DarkBlue','DarkBlue','DarkBlue']]
-    rms = 0.001
-    a.contourlevs = [[-2.*rms,2.*rms,4.*rms,8.*rms,16.*rms,32.*rms]]
-    a.contourstyles = [['dashed','solid','solid','solid','solid','solid']]
-    a.contourlinewidths = 2
-
-    a.plotname = 'ESO149-G003_data_cube_24_obs.pdf'
-    a.set_standard(border = False, background = 'dark')
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Moment-0
-    ###
-    ###
-    a = Slastroplot()
-
-    # General setting to show the scale
-    a.showscale = 4000.*u.pc
-    a.distance = 7010000*u.pc
-
-    # Generally only one colourbar
-    a.colourbar = False
-    a.colourbar_label = None
-
-    a.basemap='eso149_or_mask_mom0_sol.fits'
-    a.vmin = -0.1
-    a.vmax = 14.
-    a.stretch = 'sqrt'
-    a.cmap = None
-    a.invert = True
-
-    a.contoursets = ['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits']
-    a.annotationfontsize = 'xx-large'
-    a.contourcols = ['DarkBlue','DeepPink']
-    a.contourlevs = [0.25,0.5,1.0,2.0,4.0,8.0]
-    a.contourlinewidths = [2,1.4]
-
-    centre_ra= -1.9871734
-    centre_dec= -5.2576952E+01
-    pa = +3.32631E+02
-    len_maj = 40
-    len_min = 30
-    mindist = 8
-    pvpos = getpvdiagramolay('eso149_in.fits', centre_ra, centre_dec, pa, len_maj, len_min, mindist, arrow_colour = '0.4', label_size = 28)
-    a.olays = [eh]+pvpos
-
-    a.plotname = 'ESO149-G003_mom0.pdf'
-
-    a.nx = 1
-
-    a.set_standard(border = True, background = 'dark')
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Top view
-    ###
-    ###
-    a.basemap='eso149_model_topview_mom0_sol.fits'
-    a.plotname = 'ESO149-G003_topview_mom0.pdf'
-    a.olays = [mh]
-    a.vmax = 7.
-    a.contoursets = ['eso149_model_topview_mom0_sol.fits']
-    a.contourcols = ['DeepPink']
-    a.contourlevs = [0.25,0.5,1.0,2.0,4.0,8.0]
-    a.contourlinewidths = 1.4
-
-    a.nx = 1
-    a.ny = 0
-    a.set_standard(border = False, background = 'dark')
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Velocity field on mom0
-    ###
-    ###
-    # This is to create contours around vsys
-    nvelconts = 3
-    svelconts = 5.
-    vsys = +5.78158E+02
-    # These need to be real python float, not numpy, and a real list
-    velcontourlevs = np.arange(vsys-nvelconts*svelconts,vsys+(nvelconts+1)*svelconts,svelconts).tolist()
-
-    a.basemap='eso149_or_mask_mom0_sol.fits'
-    a.vmin = -0.1
-    a.vmax = 14.
-    a.contoursets = ['eso149_or_mask_mom1.fits', 'eso149_model_or_mask_mom1.fits']
-    a.contourlevs = [velcontourlevs]
-    a.contourcols = ['DarkBlue','DeepPink']
-    a.contourlinewidths = [2,1.4]
-    a.plotname = 'ESO149-G003_mom0_mom1cont.pdf'
-    a.nx = 1
-    a.ny = 0
-    a.set_standard(border = False, background = 'dark')
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Velocity field on mom1
-    ###
-    ###
-    # This is to create contours around vsys
-
-    a.basemap='eso149_or_mask_mom1_2_v0.fits'
-    a.vmin = -25.
-    a.vmax = 25.
-    a.contoursets = ['eso149_or_mask_mom1_2.fits', 'eso149_model_or_mask_mom1_2.fits']
-    a.contourlevs = [velcontourlevs]
-    a.contourcols = ['DarkBlue','DeepPink']
-    a.plotname = 'ESO149-G003_mom1_vf.pdf'
-    a.cmap = 'rainbow'
-    a.olays = [eh,mh]
-    a.colourbar = True
-    a.stretch = 'linear'
-    a.colourbar_label = '$v_\mathrm{{r}}-v_\mathrm{sys}\,(\mathrm{km}\,\mathrm{s}^{-1})$'
-    a.nx = 1
-    a.ny = 0
-    a.set_standard(border = False, background = 'dark')
-    a.labelmargin_right = 3.35*cm_in_inch
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Combination Velocity moment 0 and velocity field on mom1
-    ###
-    ###
-    # This is to create contours around vsys
-
-    a.basemap=['eso149_or_mask_mom0_sol.fits', 'eso149_or_mask_mom1_2_v0.fits']
-    a.individual_maps = True
-    a.vmin = [-0.1, -25.]
-    a.vmax = [14., 25.]
-    a.contoursets = [['eso149_or_mask_mom0_sol.fits', 'eso149_model_or_mask_mom0_sol.fits'],['eso149_or_mask_mom1_2.fits', 'eso149_model_or_mask_mom1_2.fits']]
-    a.contourlevs = [[0.25,0.5,1.0,2.0,4.0,8.0],[velcontourlevs]]
-    a.contourcols = [['DarkBlue','DeepPink']]
-    a.plotname = 'ESO149-G003_mom0_mom1_vf.pdf'
-    a.cmap = [None, 'rainbow']
-    pvpos = getpvdiagramolay('eso149_in.fits', centre_ra, centre_dec, pa, len_maj, len_min, mindist, arrow_colour = '0.4', label_size = 16)
-    a.olays = [[eh]+pvpos,[eh,mh]]
-    a.individual_olays = True
-    a.colourbar = True
-    a.stretch = ['sqrt', 'linear']
-    a.colourbar_label = r'$v_\mathrm{{r}}-v_\mathrm{sys}\,(\mathrm{km}\,\mathrm{s}^{-1})$'
-    a.nx = 2
-    a.ny = 0
-
-    #a.plotvelo = 'eso149_original.fits'
-    #a.colourbar_label = None
-    #a.colourbar = False
-    a.set_standard(border = False, background = 'dark')
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Combination Velocity moment 0 and velocity field on mom1, only observations
-    ###
-    ###
-
-    a.basemap=['eso149_or_mask_mom0_sol.fits', 'eso149_or_mask_mom1_2_v0.fits']
-    a.individual_maps = True
-    a.vmin = [-0.1, -25.]
-    a.vmax = [14., 25.]
-    a.contoursets = [['eso149_or_mask_mom0_sol.fits'],['eso149_or_mask_mom1_2.fits']]
-    a.contourlevs = [[0.25,0.5,1.0,2.0,4.0,8.0],[velcontourlevs]]
-    a.contourcols = [['DarkBlue']]
-    a.cmap = [None, 'rainbow']
-    pvpos = getpvdiagramolay('eso149_in.fits', centre_ra, centre_dec, pa, len_maj, len_min, mindist, arrow_colour = '0.4', label_size = 16)
-    a.olays = [[mh],[mhbl]]
-    a.individual_olays = True
-    a.colourbar = True
-    a.stretch = ['sqrt', 'linear']
-    a.colourbar_label = r'$v_\mathrm{{r}}-v_\mathrm{sys}\,(\mathrm{km}\,\mathrm{s}^{-1})$'
-    a.nx = 2
-    a.ny = 0
-
-    #a.plotvelo = 'eso149_original.fits'
-    #a.colourbar_label = None
-    #a.colourbar = False
-    a.plotname = 'ESO149-G003_mom0_mom1_vf_obs.pdf'
-    a.set_standard(border = False, background = 'dark')
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Difference maps
-    ###
-    ###
-
-    a.basemap=['eso149_cdiff_mom0_sol.fits','eso149_or_mdiff_mom0_sol.fits','eso149_not_mask_mom0_sol.fits']
-    a.vmin = [-0.01,-0.01,-0.01]
-    a.vmax = [1.4,1.4,0.7]
-    a.stretch = ['sqrt']
-    a.cmap= [None]
-    a.invert = [True]
-    a.colourbar = False
-    a.contoursets = [['eso149_cdiff_mom0_sol.fits'],['eso149_or_mdiff_mom0_sol.fits'],['eso149_not_mask_mom0_sol.fits']]
-    a.contourcols = [[['#9494c3','#9494c3','#9494c3','DarkBlue','DarkBlue']]]
-    a.contourlevs = [[-0.5,-0.25, 0., 0.25,0.5]]
-    a.contourstyles=[[['dashed', 'dashed', 'solid', 'solid','solid']]]
-    a.contourlinewidths = 2
-    a.plotname = 'ESO149-G003_mom0diffs.pdf'
-    a.nx = 3
-    a.ny = 0
-    a.individual_olays = False
-    #print(vars(a).keys())
-
-    mh = ['markers',{'pv_x_world': [358.0128034], 'pv_y_world': [-5.2576952E+01], 'marker':'x', 'linewidth': 2, 's': 75, 'c': '0.1'}]
-    a.olays=[mh,eh]
-    a.set_standard(border = False, background = 'dark')
-    #a.plotmargin = 0.02
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Optical images unconvolved
-    ###
-    ###
-
-    eh = ['ellipses', {'pv_x_world': [358.01], 'pv_y_world': [-52.5550], 'pv_height': 0.0275, 'pv_width': 0.0375, 'angle': 30., 'edgecolor': 'white', 'linewidth': 2, 'alpha': 0.7}]
-    mh = ['markers',{'pv_x_world': [358.0128034], 'pv_y_world': [-5.2576952E+01], 'marker':'x', 'linewidth': 1, 's': 12, 'c': '0.9'}]
-
-    a.basemap = []
-    a.olays = []
-    for letter in ['u','g','q','r','i','z']:
-        a.basemap.append('eso149_opt_me_'+letter+'_tri.fits')
-        a.olays.append([mh,eh,['label', {'pv_x_world': 0.9, 'pv_y_world': 0.9, 'pv_label': letter, 'relative' : True, 'size' : 'x-large', 'weight' : 400, 'color': 'black', 'label_bbfc': 'white', 'label_bbfa': 0.8, 'label_bbec': '0.7', 'label_bbea': 1.}]])
-
-    a.vmin = None
-    a.vmax = None
-    a.pmin = [8.,2.]
-    a.pmax= [95]
-    a.stretch = 'linear'
-
-    a.contoursets = [['eso149_or_mask_mom0_sol.fits']]
-    a.contourcols = [['DarkBlue']]
-    a.contourlevs = [[1.0,4.0]]
-    a.contourstyles = [['solid']]
-    a.contouralphas = 0.6
-    a.contourlinewidths =2
-
-    a.showbeam = False
-
-    a.individual_olays = True
-    a.nx = 3
-    a.ny= 0
-
-    #a.plotvelo = 'eso149_original.fits'
-    a.colourbar_label = None
-    a.colourbar = False
-
-    a.plotname = 'ESO149-G003_optical_meerlicht.pdf'
-
-    a.set_standard(border = False, background = 'dark')
-    plotmaps(**vars(a))
-
-    #    subregion = [358.01+0.16,-52.5550-0.16,358.01-0.16,-52.5550+0.16]
-
-    ###
-    ###
-    # Optical images convolved
-    ###
-    ###
-
-    a.basemap = []
-    for letter in ['u','g','q','r','i','z']:
-        a.basemap.append('eso149_opt_mc_'+letter+'_tri.fits')
-    a.plotname = 'ESO149-G003_optical_meerlicht_con_6.pdf'
-    a.pmin = [5.,3.]
-    a.pmax= [95]
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Optical DSS 
-    ###
-    ###
-    a.basemap='eso149_opt_de_r_tri.fits'
-    a.pmin = [5.]
-    a.pmax= [95.]
-    a.plotname = 'ESO149-G003_optical_dss_r.pdf'
-    a.olays = [[mh,eh]]
-
-    a.nx = 1
-    a.ny = 0
-    a.set_standard(border = False, background = 'dark')
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # Optical DSS convolved
-    ###
-    ###
-    a.basemap='eso149_opt_dc_r_tri.fits'
-    a.plotname = 'ESO149-G003_optical_dss_r_con_6.pdf'
-    plotmaps(**vars(a))
-
-
-    ###
-    ###
-    # Optical DSS normal and convolved
-    ###
-    ###
-    a.basemap=['eso149_opt_de_r_tri.fits', 'eso149_opt_dc_r_tri.fits']
-    a.plotname = 'ESO149-G003_optical_dss_r_norm_con_6.pdf'
-    a.nx = 2
-    a.ny = 0
-    a.set_standard(border = False, background = 'dark')
-    a.nx = 1
-    a.ny = 0
-    a.width = a.width/2.
-    plotmaps(**vars(a))
-
-    ###
-    ###
-    # 
-    ###
-    ###
 
     pvdiagrams('eso149_in.fits', 'original', centre_ra, centre_dec, pa, len_maj, len_min, mindist)
     pvdiagrams('final_eso149_out.fits', 'finalmodel', centre_ra, centre_dec, pa, len_maj, len_min, mindist)
 
-    ###
-    ###
-    # 
-    ###
+    # Most explains itself, but the ellipse height is set to vres times the channel width in the beaminfoset 
+        #####
+    vmin = -0.004
+    vmax = 0.08
+    stretch = 'sqrt'
+    cmap = None
+    invert = True
+    colourbar = False
 
-    # Now this is not perfect, but we first create a standard, to then change it to our needs. PVdiagrams are different from other plots
-
-    a =  Slastroplot()
-    a.nx = 3
-    a.ny = 0
-    a.showscale = 4000.*u.pc
-    a.distance = 7010000*u.pc
-    a.set_standard(border = False, background = 'dark')
-
-    #keywordlist = vars(a)
-    #for i in ['annotationfontsize', 'frameticklength','scalebarfontsize', 'scale_sep', 'scalebarcolor', 'scale_borderpad', 'figsize', 'letters', 'lettercol', 'plotprefix', 'plotpostfix', 'aspect', 'vres', 'showbeam', 'contoursets', 'contourcols', 'contourlevs', 'contourstyles', 'contoursets', 'postfixes', 'beaminfoset', 'letterfontsize', 'letterposx', 'letterposy', 'letter_ffc', 'letter_ffa', 'letter_fec', 'letter_fea', 'bgname_prefix']:
-    #    if i in keywordlist:
-    #        print('{} does exist, value: {}'.format(i, keywordlist[i]))
-    #    else:
-    # print('Hey {} does not exist'.format(i))
-
-    a.scale_sep = 3.5
-    figsize = a.figsize[0]
-    a.figsize = (figsize/2, figsize/2)
-    a.aspect = 'auto'
-
-    a.bgname_prefix = 'original'
-    a.postfixes = ['_pvmaj.fits','_pvmin_left.fits', '_pvmin_cent.fits', '_pvmin_right.fits']
-
-    a.vmin = -0.004
-    a.vmax = 0.08
-    a.stretch = 'sqrt'
-    a.cmap = None
-    a.invert = True
-    a.colourbar = False
-
-    a.contoursets = ['original', 'finalmodel']
-    a.contourcols = [['#9494c3','DarkBlue','DarkBlue','DarkBlue','DarkBlue','DarkBlue'],['#f2e4e8','DeepPink','DeepPink','DeepPink','DeepPink','DeepPink']]
+        
+    annotationfontsize = 'medium'
+    labelmargin_left = 0.75*3.5*cm_in_inch # 0.75*default
+    labelmargin_bottom = 0.75*1.75*cm_in_inch # 0.75*default
+    labelmargin_right = 0.75*3.5*cm_in_inch # default
+    plotmargin = 0.25*cm_in_inch # default/2
+    frameticklength = 5
+    contourlinewidths = 2
+    scalebarlinewidth = 2
+    scalebarfontsize = annotationfontsize
+    scale_sep = 5
+    scalebarcolor = 'black'
+    scale_borderpad = 0.5
+    figsize = A4widht_in_inch/2.
+    letters = ['A', 'B', 'C', 'D']
+    lettercol = 'black'
+#    showscale = 2000.*u.pc
+    plotprefix = 'ESO149-G003'
+    plotpostfix = '.pdf'
+    aspect = 'auto'
+    vres = 2 # Velocity resolution for 'beam'
+    showbeam = True
+    contoursets = ['original', 'finalmodel']
+    contourcols = [['#9494c3','DarkBlue','DarkBlue','DarkBlue','DarkBlue'],['#f2e4e8','DeepPink','DeepPink','DeepPink','DeepPink']]
     rms = 0.001
-    a.contourlevs = [[-2.*rms,2.*rms,4.*rms,8.*rms,16.*rms, 32.*rms],[-2.*rms,2.*rms,4.*rms,8.*rms,16.*rms, 32.*rms],]
-    a.contourstyles = [['dashed','solid','solid','solid','solid','solid'],['dashed','solid','solid','solid','solid','solid']]
-    a.contoursets = ['original', 'finalmodel']
-    a.contourlinewidths = [2,1.4]
+    contourlevs = [[-2.*rms,2.*rms,4.*rms,8.*rms,16.*rms]]
+    contourstyles = ['dashed','solid','solid','solid','solid']
+    contoursets = ['original', 'finalmodel']
+    postfixes = ['_pvmaj.fits','_pvmin_left.fits', '_pvmin_cent.fits', '_pvmin_right.fits']
+    beaminfoset = 'eso149_in.fits'
+    letterfontsize = 24
+    letterposx = 0.9
+    letterposy = 0.9
+    letter_ffc = scale_ffc
+    letter_ffa = scale_ffa
+    letter_fec = scale_fec
+    letter_fea = scale_fea
+    
+    plotpvdiagrams(bgname_prefix = 'original', figsize = (figsize,figsize), vmin = vmin, vmax = vmax, stretch = stretch, cmap=cmap, invert = invert, colourbar = colourbar, annotationfontsize = annotationfontsize, contoursets = contoursets, postfixes = postfixes, letters = letters, lettercol = lettercol, contourcols = contourcols, contourlevs = contourlevs, contourstyles=contourstyles, frametickcolour = frametickcolour, frameticklength = frameticklength, showbeam = showbeam, beaminfoset = beaminfoset, vres = vres, showscale = showscale, scaleunits = scaleunits, distance = distance, scale_borderpad = scale_borderpad, scale_sep = scale_sep, scale_ffc = scale_ffc, scale_ffa = scale_ffa, scale_fec = scale_fec, scale_fea = scale_fea, plotprefix = plotprefix, plotpostfix = plotpostfix, aspect = aspect, contourlinewidths = contourlinewidths, scalebarfontsize = scalebarfontsize, scalebarlinewidth = scalebarlinewidth, frameticklinewidth = frameticklinewidth, letterfontsize = letterfontsize, letterposx = letterposx, letterposy = letterposy,  letter_ffc = letter_ffc, letter_ffa = letter_ffa, letter_fec = letter_fec, letter_fea = letter_fea)
 
-    a.letters = ['A', 'B', 'C', 'D']
-    a.lettercol = 'black'
-
-    a.vres = 2 # Velocity resolution for 'beam'
-    a.beaminfoset = 'eso149_in.fits'
-
-    a.letterfontsize = 24
-    a.letterposx = 0.9
-    a.letterposy = 0.9
-    a.letter_ffc = a.scale_ffc
-    a.letter_ffa = a.scale_ffa
-    a.letter_fec = a.scale_fec
-    a.letter_fea = a.scale_fea
-
-    a.plotprefix = 'ESO149-G003'
-    a.plotpostfix = '.pdf'
-
-    a.bordertop = 0.
-    a.borderbottom = 1.25
-    a.borderleft = 1.25
-    a.borderright = 0
-
-    keywordlist = vars(a)
-    # Clean up, pop out parameters that plotmaps does not know but plotpvdiagrams doesn't
-    [keywordlist.pop(i) for i in ['colourbar_label','exponent','suppress_xlab','suppress_ylab', 'velofontsize', 'nx', 'velbbea', 'velbbfa', 'labelmargin_left', 'veloposx', 'width', 'plotpostfix', 'chans', 'labelmargin_bottom', 'individual_maps', 'ny', 'labelmargin_right', 'individual_olays', 'colourbar_pad', 'velbbec', 'vmid', 'plotmargin', 'velbbfc', 'basemap', 'olays', 'plotvelo', 'labelmargin_top', 'veloposy', 'colourbar_width']]
-    plotpvdiagrams(**keywordlist)
+    
