@@ -55,7 +55,15 @@ class Slastroplot:
         
         self.suppress_xlab = False
         self.suppress_ylab = False
-
+        self.x_major_formatter = None
+        self.x_ticksn = None
+        self.hide_ticl = False
+        self.hide_ticl_left = True
+        self.hide_ticl_min = 0.
+        self.hide_ticl_max = 0.
+        self.hide_ticl_top = 0.
+        self.hide_ticl_bottom = 0.
+        
         # Colourbar and lengths
         self.colourbar_width = 0.2
         self.colourbar_pad = 0.05
@@ -260,7 +268,7 @@ class Slastroplot:
             self.scalebarfontsize = self.annotationfontsize
 
             self.velofontsize = self.annotationfontsize
-        else:
+        elif self.nx == 4:
             self.labelmargin_left = 1.75*cm_in_inch # default/2
             self.labelmargin_bottom = 0.875*cm_in_inch # default/2
 
@@ -282,13 +290,48 @@ class Slastroplot:
                 else:
                     self.labelmargin_right = 1.25*cm_in_inch
             else:
-                self.veloposx = 0.275
+                self.veloposx = 0.3
                 self.veloposy = 0.9
                 self.labelmargin_top = 0.
                 self.labelmargin_right = 0.
 
             self.scale_borderpad = 0.7
             self.scale_sep = 5
+            self.scalebarlinewidth = 2
+            self.scalebarfontsize = self.annotationfontsize
+
+            self.velofontsize = self.annotationfontsize
+        else:
+            self.labelmargin_left = 1.75*cm_in_inch # default/2
+            self.labelmargin_bottom = 0.875*cm_in_inch # default/2
+
+            self.annotationfontsize = 'small'
+
+            self.frameticklinewidth = 2
+            self.frameticklength = 5
+            self.hide_ticl_top = -0.02
+            self.hide_ticl_bottom = -0.1
+           
+            # Colourbar and lengths
+            if self.colourbar:
+                self.colourbar_width = 0.1
+                self.colourbar_pad = 0.05
+                self.veloposx = 0.3
+                self.veloposy = 0.89
+                self.labelmargin_top = 0.125*cm_in_inch
+
+                if self.colourbar_label != None:
+                    self.labelmargin_right = 1.65*cm_in_inch
+                else:
+                    self.labelmargin_right = 1.25*cm_in_inch
+            else:
+                self.veloposx = 0.35
+                self.veloposy = 0.87
+                self.labelmargin_top = 0.
+                self.labelmargin_right = 0.
+
+            self.scale_borderpad = 0.5
+            self.scale_sep = 3
             self.scalebarlinewidth = 2
             self.scalebarfontsize = self.annotationfontsize
 
@@ -701,7 +744,7 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
     F.ticks.set_length(frameticklength)  # points
     F.ticks.set_color(frametickcolour)  # points
     F.ticks.set_linewidth(frameticklinewidth)  # points
-
+    F.ticks._ax.coords[F.ticks.x].ticks.set_tick_out(False)
 
     kwargs = {'pmin': pmin, 'pmax': pmax, 'stretch': stretch, 'vmid' : vmid, 'exponent': exponent, 'aspect': aspect}
 
@@ -743,6 +786,7 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
             #        print(i)
     F.ticks._ax.coords[F.ticks.x].ticks.set_tick_out(False)
     F.ticks._ax.coords[F.ticks.y].ticks.set_tick_out(False)
+    
 
     ####
     #### old
@@ -760,11 +804,17 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
         try:
             physicalkpc = showscale.to(u.pc).value/1000.
             angular = u.arcsec*physicalkpc/arcsectokpc
-            text = r'$\bf{{{0:.1f}\, \mathrm{{\bf kpc}} \,\bf{{\widehat{{\bf{{=}}}}}} \,{1:.0f}{2:s}}}$'.format(physicalkpc, angular.value*scalehere, symbolhere)
+            if scaleunits == 'arcmin':
+                text = r'holo$\bf{{{0:.1f}\, \mathrm{{\bf kpc}} \,\bf{{\widehat{{\bf{{=}}}}}} \,{1:.1f}{2:s}}}$'.format(physicalkpc, angular.value*scalehere, symbolhere)
+            else:
+                text = r'$\bf{{{0:.1f}\, \mathrm{{\bf kpc}} \,\bf{{\widehat{{\bf{{=}}}}}} \,{1:.f}{2:s}}}$'.format(physicalkpc, angular.value*scalehere, symbolhere)
         except:
             angular = showscale.to(u.arcsec)
             physical = (angular.value*arcsectokpc)
-            text = r'$\bf{{{1:.0f}{2:s}\,\widehat{{=}}\, {0:.1f}\, \mathrm{{kpc}}}}$'.format(physical, angular.value*scalehere, symbolhere)
+            if scaleunits == 'arcmin':
+                text = r'$\bf{{{1:.1f}{2:s}\,\widehat{{=}}\, {0:.1f}\, \mathrm{{kpc}}}}$'.format(physical, angular.value*scalehere, symbolhere)
+            else:
+                text = r'$\bf{{{1:.1f}{2:s}\,\widehat{{=}}\, {0:.f}\, \mathrm{{kpc}}}}$'.format(physical, angular.value*scalehere, symbolhere)
         F.add_scalebar(angular)
         F.scalebar.show(angular, borderpad = scale_borderpad, sep = scale_sep)
         F.scalebar.set_color(scalebarcolor)
@@ -803,11 +853,17 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
         try:
             physicalkpc = showscale.to(u.pc).value/1000.
             angular = u.arcsec*physicalkpc/arcsectokpc
-            text = r'$\bf{{{0:.1f}\, \mathrm{{\bf kpc}} \,\bf{{\widehat{{\bf{{=}}}}}} \,{1:.0f}{2:s}}}$'.format(physicalkpc, angular.value*scalehere, symbolhere)
+            if scaleunits == 'arcmin':
+                text = r'$\bf{{{0:.1f}\, \mathrm{{\bf kpc}} \,\bf{{\widehat{{\bf{{=}}}}}} \,{1:.1f}{2:s}}}$'.format(physicalkpc, angular.value*scalehere, symbolhere)
+            else:
+                text = r'$\bf{{{0:.1f}\, \mathrm{{\bf kpc}} \,\bf{{\widehat{{\bf{{=}}}}}} \,{1:.0f}{2:s}}}$'.format(physicalkpc, angular.value*scalehere, symbolhere)
         except:
             angular = showscale.to(u.arcsec)
             physical = (angular.value*arcsectokpc)
-            text = r'$\bf{{{1:.0f}{2:s}\,\widehat{{=}}\, {0:.1f}\, \mathrm{{kpc}}}}$'.format(physical, angular.value*scalehere, symbolhere)
+            if scaleunits == 'arcmin':
+                text = r'$\bf{{{1:.1f}{2:s}\,\widehat{{=}}\, {0:.1f}\, \mathrm{{kpc}}}}$'.format(physical, angular.value*scalehere, symbolhere)
+            else:
+                text = r'$\bf{{{1:.0f}{2:s}\,\widehat{{=}}\, {0:.1f}\, \mathrm{{kpc}}}}$'.format(physical, angular.value*scalehere, symbolhere)
         F.add_scalebar(angular)
         F.scalebar.show(angular, borderpad = scale_borderpad, sep = scale_sep)
         F.scalebar.set_color(scalebarcolor)
@@ -847,7 +903,7 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
             F.scalebar.set_label(text)
     return
 
-def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basemap = None, vmin = None, vmax= None, pmin = 0, pmax = 1, stretch = 'linear', vmid = None, exponent = None, cmap = None, invert = False, colourbar = False, colourbar_label = None, colourbar_width = 0.2, colourbar_pad = 0.05, annotationfontsize = 'x-large', suppress_xlab = False, suppress_ylab = False, contoursets = [], contourcols = None,  contourstyles = None, contouralphas = None, contourlevs = [], contourlinewidths = None, frametickcolour = 'black', frameticklinewidth = None, frameticklength = None, showbeam = False, beamfc = '0.7', beamfa = 0.5, beamec = 'black', beamea = 1., showscale = None, showscalelab = True, distance = 10, scaleunits = 'arcsecs', scale_borderpad = 1, scale_sep = 10, scale_ffc = None, scale_ffa = 1.0, scale_fec = None, scale_fea = 1.0, plane = 0, plotvelo = None, velofontsize = None, veloposx = 0.25, veloposy = 0.9, velbbfc = None, velbbec = None, velbbfa = 1, velbbea = 1, scalebarlinewidth = 1, scalebarfontsize = None, scalebarcolor = 'black', aspect = 'equal',):
+def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basemap = None, vmin = None, vmax= None, pmin = 0, pmax = 1, stretch = 'linear', vmid = None, exponent = None, cmap = None, invert = False, colourbar = False, colourbar_label = None, colourbar_width = 0.2, colourbar_pad = 0.05, annotationfontsize = 'x-large', suppress_xlab = False, suppress_ylab = False, contoursets = [], contourcols = None,  contourstyles = None, contouralphas = None, contourlevs = [], contourlinewidths = None, frametickcolour = 'black', frameticklinewidth = None, frameticklength = None, showbeam = False, beamfc = '0.7', beamfa = 0.5, beamec = 'black', beamea = 1., showscale = None, showscalelab = True, distance = 10, scaleunits = 'arcsecs', scale_borderpad = 1, scale_sep = 10, scale_ffc = None, scale_ffa = 1.0, scale_fec = None, scale_fea = 1.0, plane = 0, plotvelo = None, velofontsize = None, veloposx = 0.25, veloposy = 0.9, velbbfc = None, velbbec = None, velbbfa = 1, velbbea = 1, scalebarlinewidth = 1, scalebarfontsize = None, scalebarcolor = 'black', aspect = 'equal', x_major_formatter = None, x_ticksn = None, hide_ticl = False, hide_ticl_left = True, hide_ticl_min = 0., hide_ticl_max = 0., hide_ticl_top = 0., hide_ticl_bottom = 0.):
     """
     Plot one map
 
@@ -870,6 +926,14 @@ def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basema
     annotationfontsize (str or number)           : General type size
     suppress_xlab (bool)                         : Suppress labeling of x-axis (axis- and tick labels)
     suppress_ylab = False                        : Suppress labeling of y-axis (axis- and tick labels)
+    x_major_formatter (None or str)               : (dummy, parameter is used by plotmaps) Formatter of major xticklabels, e.g. 'hh:mm'
+    x_ticksn (None or int)                          : (dummy, parameter is used by plotmaps) Numer of xticklabels
+    hide_ticl (bool or list of bool)              : (dummy, parameter is used by plotmaps) Create a white patch to hide a portion of the x-axis ticklabels, either one bool for all sub-plots or a list of nx bools for nx individual plots
+    hide_ticl_left (bool)                         : (dummy, parameter is used by plotmaps) Indication if the patch is on the left (True) or on the right (False)
+    hide_ticl_min (float)                         : (dummy, parameter is used by plotmaps) Horizontal start position of the patch for each sub-plot in units of width of the subplot
+    hide_ticl_max (float)                         : (dummy, parameter is used by plotmaps) Horizontal end position of the patch for each sub-plot in units of width of the subplot
+    hide_ticl_top (float)                         : (dummy, parameter is used by plotmaps) Vertical start position of the patch for each sub-plot in units of height of the subplot
+    hide_ticl_bottom (float)                      : (dummy, parameter is used by plotmaps) Vertical end position of the patch for each sub-plot in units of height of the plot
     contoursets (list of str)                    : List of data sets to generate contours from, which will be overlaid on background image
     contourlevs (list of float/lists)            : List of contours valid for all data sets in contoursets or list of lists of contours valid for each member of contoursets. If fewer controur level lists are given than contoursets, the last given contours are repeated for consecutive contoursets.
     contourcols (None, list, or list of lists)   : Colours corresponding to contourlevs
@@ -939,7 +1003,7 @@ def plotmaps_prep(figure = None, figsize = None, subplot=[0.0,0.0,1.,1.], basema
             cdeltvelo = float(velotesthead['CDELT3'])
 
             # If cdeltvelo is larger than some large value it's in units of m/s
-            if cdeltvelo > 1000.:
+            if math.fabs(cdeltvelo) > 1000.:
                 cdeltvelo = cdeltvelo/1000.
                 refvalvelo = refvalvelo/1000.
         except:
@@ -1252,7 +1316,7 @@ def putolays(F, olhere):
             pass
     return
 
-def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_left = 3.5*cm_in_inch, labelmargin_bottom = 1.75*cm_in_inch, labelmargin_right = 0., labelmargin_top = 0., vmin = None, vmax= None, pmin = None, pmax = None, stretch = None, cmap = None, colourbar = False, colourbar_width = 0.2, colourbar_pad = 0.05, invert = False, chans = None, nx = 0, ny =0, showscale = None, showbeam = True, showscalelab = True, reducescalelab = True, plotname = None, individual_maps = False, contoursets = None, contourlevs = None, contourcols = None, contourstyles = None, contouralphas = None, individual_olays = False, olays = None, **kwargs):
+def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_left = 3.5*cm_in_inch, labelmargin_bottom = 1.75*cm_in_inch, labelmargin_right = 0., labelmargin_top = 0., vmin = None, vmax= None, pmin = None, pmax = None, stretch = None, cmap = None, colourbar = False, colourbar_width = 0.2, colourbar_pad = 0.05, invert = False, chans = None, nx = 0, ny =0, showscale = None, showbeam = True, showscalelab = True, reducescalelab = True, plotname = None, individual_maps = False, contoursets = None, contourlevs = None, contourcols = None, contourstyles = None, contouralphas = None, individual_olays = False, olays = None, x_major_formatter = None, x_ticksn = None, hide_ticl = False, hide_ticl_left = True, hide_ticl_min = 0., hide_ticl_max = 0., hide_ticl_top = 0., hide_ticl_bottom = 0., **kwargs):
     """
 
     Plot a grid of maps
@@ -1279,9 +1343,18 @@ def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_l
     colourbar_label (str)                         : Label for colourbar
     colourbar_width (str)                         : Colourbar width in inches
     colourbar_pad (str)                           : Colourbar padding in inches
-    annotationfontsize (str or number)           : General type size
-    suppress_xlab (bool)                         : Generally suppress labeling of x-axis (axis- and tick labels)
-    suppress_ylab (bool)                         : Generally suppress labeling of y-axis (axis- and tick labels)
+    annotationfontsize (str or number)            : General type size
+    suppress_xlab (bool)                          : Generally suppress labeling of x-axis (axis- and tick labels)
+    suppress_ylab (bool)                          : Generally suppress labeling of y-axis (axis- and tick labels)
+    x_major_formatter (None or str)               : Formatter of major xticklabels, e.g. 'hh:mm'
+    x_ticksn (None or int)                          : Numer of xticklabels
+    hide_ticl (bool or list of bool)              : Create a white patch to hide a portion of the x-axis ticklabels, either one bool for all sub-plots or a list of nx bools for nx individual plots
+    hide_ticl_left (bool)                         : Indication if the patch is on the left (True) or on the right (False)
+    hide_ticl_min (float)                         : Horizontal start position of the patch for each sub-plot in units of width of the subplot
+    hide_ticl_max (float)                         : Horizontal end position of the patch for each sub-plot in units of width of the subplot
+    hide_ticl_top (float)                         : Vertical start position of the patch for each sub-plot in units of height of the subplot
+    hide_ticl_bottom (float)                      : Vertical end position of the patch for each sub-plot in units of height of the plot
+
     individual_maps (bool)                   : Instead of applying contoursets, contourlevs, contourcols, contourstyles for all data sets given, the corresponding quantities are given for each input cube in a list
     contoursets (list of str or list of lists)   : List of data sets to generate contours from, which will be overlaid on background images
     contourlevs (list of float/lists)            : List of contours valid for all data sets in contoursets or list of lists of contours valid for each member of contoursets. If fewer controur level lists are given than contoursets, the last given contours are repeated for consecutive contoursets.
@@ -1436,12 +1509,14 @@ def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_l
 
     a = showscale
     b = showbeam
-    c = colourbar 
+    c = colourbar
     kwargs['showscale'] = None
     kwargs['showbeam'] = False
     kwargs['colourbar'] = False
     kwargs['vmin'] = -10000002.
     kwargs['vmax'] = -10000001.
+    d = kwargs['plotvelo']
+    kwargs['plotvelo'] = None
     
     F = plotmaps_prep(figure = fig, subplot=[lfow, btoh, pnow, pnoh*float(ny)], plane = 0, **kwargs)
     kwargs['showscale'] = a
@@ -1493,11 +1568,27 @@ def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_l
     stretch_intro = stretch
     cmap_intro    = cmap   
     invert_intro  = invert 
+    kwargs['plotvelo'] = d
 
     # Now loop over the panels
+    chanpospre = []
     for i in range(len(chans)):
-        posnx = i % nx
-        posny = ny - i // nx - 1
+        chanpospre += [[i, i % nx, ny - i // nx - 1]]
+    if hide_ticl_left:
+        chanpos = []
+        for iy in range(ny):
+            for ix in range(nx):
+                if nx*iy+(nx-ix-1) < len(chans):
+                    chanpos += [chanpospre[nx*iy+(nx-ix-1)]]
+    else:
+        chanpos = chanpospre
+                    
+        
+#        posnx = i % nx
+#        posny = ny - i // nx - 1
+
+    for jojo in range(len(chanpos)):
+        i, posnx, posny = chanpos[jojo]
         
         if posnx == 0:
             showscalelab_here = showscalelab
@@ -1553,6 +1644,7 @@ def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_l
 
         F.axis_labels.hide_x()
         F.axis_labels.hide_y()
+#        print('yoman: {}'.format(F.tick_labels._ax.coords[0].get_xticklabels()))
         if posnx != 0:
             F.tick_labels.hide_y()
         if colourbar and posnx != nx-1:
@@ -1560,7 +1652,44 @@ def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_l
         # Leave tick labels if there is no panel below
         if (posny != 0) and nx*(i//nx+1)+posnx < len(chans):
             F.tick_labels.hide_x()
+        #    for i in dir(F.ax.coords[F.x]):
+#            print('jo {}'.format(i))
+#        print('hji |{}|'.format(F.ax.coords[F.ticks.x].ticklabels.get_label()))
+#        print('hji |{}|'.format(F.ax.get_xticklabels(which='major')))
+#        thelist = dir(F.ax.coords[F.ticks.x].ticklabels)
+        #    F.ticks._ax.coords[F.ticks.x].set_ticklabel(exclude_overlapping=True)
+        #F.ax.coords[F.x].set_ticklabel(exclude_overlapping=True)
+        if x_major_formatter != None:
+            F.ax.coords[F.x].set_major_formatter(x_major_formatter)
+        if x_ticksn != None:
+            F.ax.coords[F.x].set_ticks(number = x_ticksn)
+#        thelist = F.ax.get_xticklabels(which='major')
+#        for hji in thelist:
+#            hji.set_text('fu')
+#            print('ji {}'.format(hji))
         F.close()
+    
+        # [lfow+posnx*pnowshift+pnow, btoh+posny*pnoh-0.05, pnow, 0.05]
+        # Yes, these are redundant calculations, but I want to keep this together in one progamming block
+        if type(hide_ticl) != type([]):
+            hide_ticle = [hide_ticl]
+        else:
+            hide_ticle = hide_ticl        
+        hidelabs = [i for i in hide_ticle]
+        while len(hidelabs) < nx:
+            hidelabs += [hidelabs[-1]]
+        if hidelabs[posnx] == True:
+            fhead = read2dim(fits.open(kwargs['basemap'])[0],0)
+            fhead.data = 0.*fhead.data
+            F = aplpy.FITSFigure(fhead, figure=fig, subplot=[lfow+posnx*pnowshift+hide_ticl_min*pnow, btoh+posny*pnoh+hide_ticl_bottom*pnoh, hide_ticl_max*pnow-(hide_ticl_min*pnow), (hide_ticl_top-hide_ticl_bottom)*pnoh])
+            F.axis_labels.hide_x()
+            F.tick_labels.hide_x()
+            F.axis_labels.hide_y()
+            F.tick_labels.hide_y()
+            F.ticks.hide()
+            F.frame.set_color('white')
+            F.close()
+
 
     #    fig.canvas.draw()
     if plotname != None:
