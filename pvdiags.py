@@ -609,7 +609,7 @@ def plotpvdiagrampositions(filename, centra, centdec, pa, majlen, minlen, mindis
         F.save(plotname)
     F.close()
 
-def getpvdiagramolay(filename, centra, centdec, pa, majlen, minlen, mindist, arrow_colour = 'red', arrow_width = 0.2, arrow_head_width = 1.5, arrow_head_length = 1.5, arrow_length_includes_head = True, labels = ['A','B','C','D'], label_size=24, label_weight=400, label_horizontalalignment='center', label_verticalalignment='center'):
+def getpvdiagramolay(filename, centra, centdec, pa, majlen, minlen, mindist, arrow_colour = 'red', arrow_width = 0.2, arrow_head_width = 1.5, arrow_head_length = 1.5, arrow_length_includes_head = True, labels = ['A','B','C','D'], label_size=24, label_weight=400, label_horizontalalignment='center', label_verticalalignment='center', label_dist = 2.5):
     """
     Will draw lines onto an image of overplotname to indicate position of PV-diagrams
 
@@ -656,8 +656,8 @@ def getpvdiagramolay(filename, centra, centdec, pa, majlen, minlen, mindist, arr
     # Make a grid
     endpoints_y_b = np.array([majlen/2., -majlen/2.,  mindist  ,  mindist ,         0.,        0.,   -mindist,  -mindist])
     endpoints_x_b = np.array([       0.,         0., -minlen/2., minlen/2., -minlen/2., minlen/2., -minlen/2.-0.0001, minlen/2.+0.0001])
-    endpoints_y_bt = np.array([majlen/2.+2.5, -majlen/2.+2.5,  mindist  ,  mindist ,         0.,        0.,   -mindist,  -mindist])
-    endpoints_x_bt = np.array([       0.,         0., -minlen/2.-2.5, minlen/2.-2.5, -minlen/2.-2.5, minlen/2.-2.5, -minlen/2.-0.0001-2.5, minlen/2.+0.0001-2.5])
+    endpoints_y_bt = np.array([majlen/2.+label_dist, -majlen/2.+label_dist,  mindist  ,  mindist ,         0.,        0.,   -mindist,  -mindist])
+    endpoints_x_bt = np.array([       0.,         0., -minlen/2.-label_dist, minlen/2.-label_dist, -minlen/2.-label_dist, minlen/2.-label_dist, -minlen/2.-0.0001-label_dist, minlen/2.+0.0001-label_dist])
 
     # Rotate
     endpoints_x = endpoints_x_b*np.cos(np.pi*pa/180.)-endpoints_y_b*np.sin(np.pi*pa/180.)+central_pix_x
@@ -688,7 +688,7 @@ def getpvdiagramolay(filename, centra, centdec, pa, majlen, minlen, mindist, arr
     return returnolays
 
     
-def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stretch = 'linear', cmap = None, vmid = None, exponent = None, invert = False, colourbar = False, colourbar_label = None, colourbar_width = 0.2, colourbar_pad = 0.05, frametickcolour = 'black', frameticklinewidth = None, frameticklength = None, showscale = None, showscalelab = True, distance = 10, scaleunits = 'arcsec',  scale_borderpad = 1, scale_ffc = None, scale_ffa = 1.0, scale_fec = None, scale_fea = 1.0, scale_sep = 10, annotationfontsize = 'xx-large', suppress_xlab = False, suppress_ylab = False, scalebarlinewidth = 1, scalebarfontsize = None, scalebarcolor = 'black', aspect='equal'):
+def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stretch = 'linear', cmap = None, vmid = None, exponent = None, invert = False, colourbar = False, colourbar_label = None, colourbar_width = 0.2, colourbar_pad = 0.05, frametickcolour = 'black', frameticklinewidth = None, frameticklength = None, showscale = None, showscalelab = True, distance = 10, scaleunits = 'arcsec',  scale_borderpad = 1, scale_ffc = None, scale_ffa = 1.0, scale_fec = None, scale_fea = 1.0, scale_sep = 10, annotationfontsize = 'xx-large', suppress_xlab = False, suppress_ylab = False, scalebarlinewidth = 1, scalebarfontsize = None, scalebarcolor = 'black', aspect='equal', offsetunits = 'arcsec'):
     """
     Prepare a plot, called by any plotting routine
 
@@ -837,12 +837,10 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
     ####
     ####
 
-
-
-    
 #    if False:
     if showscale != None:
         arcsectokpc = distance.to(u.pc).value*np.pi/(180.*3600.*1000.)
+            
         if scaleunits == 'arcmin':
             scalehere = 1./60.
             symbolhere = '^{{\prime}}'
@@ -853,6 +851,7 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
         try:
             physicalkpc = showscale.to(u.pc).value/1000.
             angular = u.arcsec*physicalkpc/arcsectokpc
+
             if scaleunits == 'arcmin':
                 text = r'$\bf{{{0:.1f}\, \mathrm{{\bf kpc}} \,\bf{{\widehat{{\bf{{=}}}}}} \,{1:.1f}{2:s}}}$'.format(physicalkpc, angular.value*scalehere, symbolhere)
             else:
@@ -864,6 +863,9 @@ def plotprep_general(F, vmin = None, vmax= None, pmin = None, pmax = None, stret
                 text = r'$\bf{{{1:.1f}{2:s}\,\widehat{{=}}\, {0:.1f}\, \mathrm{{kpc}}}}$'.format(physical, angular.value*scalehere, symbolhere)
             else:
                 text = r'$\bf{{{1:.0f}{2:s}\,\widehat{{=}}\, {0:.1f}\, \mathrm{{kpc}}}}$'.format(physical, angular.value*scalehere, symbolhere)
+
+        if offsetunits != 'arcsec':
+            angular = angular/60.
         F.add_scalebar(angular)
         F.scalebar.show(angular, borderpad = scale_borderpad, sep = scale_sep)
         F.scalebar.set_color(scalebarcolor)
@@ -1222,7 +1224,7 @@ def putolays(F, olhere):
                 overlay[1].pop('label_bbfa')
             except:
                 label_bbfa = 1.
-                retlabel_bbfa = None
+                #retlabel_bbfa = None
             try:
                 label_bbfc = overlay[1]['label_bbfc']
                 retlabel_bbfc = overlay[1]['label_bbfc']
@@ -1230,14 +1232,14 @@ def putolays(F, olhere):
             except:
                 label_bbfc = 'black'
                 label_bbfa = 0.
-                retlabel_bbfc = None
+                #retlabel_bbfc = None
             try:
                 label_bbea = overlay[1]['label_bbea']
                 retlabel_bbea = overlay[1]['label_bbea']
                 overlay[1].pop('label_bbea')
             except:
                 label_bbea = 1.
-                retlabel_bbea = None
+                #retlabel_bbea = None
             try:
                 label_bbec = overlay[1]['label_bbec']
                 retlabel_bbec = overlay[1]['label_bbec']
@@ -1245,8 +1247,7 @@ def putolays(F, olhere):
             except:
                 label_bbec = 'black'
                 label_bbea = 0.
-                retlabel_bbec = None
-                
+                #retlabel_bbec = None
             grofo = mpl.colors.to_rgba(label_bbfc)
             label_bbfc = (grofo[0], grofo[1], grofo[2], label_bbfa)
             grofo = mpl.colors.to_rgba(label_bbec)
@@ -1696,7 +1697,7 @@ def plotmaps(width = A4widht_in_inch, plotmargin = 0.5*cm_in_inch, labelmargin_l
         fig.savefig(plotname)
     return    
 
-def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pmax= None, stretch = 'default', cmap=None, invert = True, colourbar = False, annotationfontsize = 'x-large', contoursets = [], postfixes = ['_pvmaj.fits','_pvmin_left.fits', '_pvmin_cent.fits', '_pvmin_right.fits'], letters = ['A', 'B', 'C', 'D'], lettercol = 'black', contourcols = None, contourstyles = None, contouralphas = None, contourlevs = [], frametickcolour = '#555555', frameticklinewidth = None, frameticklength = None, showbeam = True, beaminfoset = '', vres = 2, showscale = 1*u.arcmin, scaleunits = 'arcsec', distance = 7010000*u.pc, scale_borderpad = 1, scale_sep = 10, scale_ffc = None, scale_ffa = 1.0, scale_fec = None, scale_fea = 1.0, plotprefix = '', plotpostfix = '.pdf', figsize = None, aspect = 'auto', contourlinewidths = 1, scalebarlinewidth = 1, scalebarcolor = 'black', letterfontsize = 32, letterposx = 0.95, letterposy = 0.95, letter_ffc = None, letter_ffa = 0., letter_fec = None, letter_fea = 1., scalebarfontsize = 'medium', beamfc = '0.7', beamfa = 0.5, beamec = 'black', beamea = 1., showscalelab = True, reducescalelab = True, borderleft = 1.25, borderbottom = 1.25, borderright = 0., bordertop = 0.):
+def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pmax= None, stretch = 'default', cmap=None, invert = True, colourbar = False, annotationfontsize = 'x-large', contoursets = [], postfixes = ['_pvmaj.fits','_pvmin_left.fits', '_pvmin_cent.fits', '_pvmin_right.fits'], letters = ['A', 'B', 'C', 'D'], lettercol = 'black', contourcols = None, contourstyles = None, contouralphas = None, contourlevs = [], frametickcolour = '#555555', frameticklinewidth = None, frameticklength = None, showbeam = True, beaminfoset = '', vres = 2, showscale = 1*u.arcmin, scaleunits = 'arcsec', distance = 7010000*u.pc, scale_borderpad = 1, scale_sep = 10, scale_ffc = None, scale_ffa = 1.0, scale_fec = None, scale_fea = 1.0, plotprefix = '', plotpostfix = '.pdf', figsize = None, aspect = 'auto', contourlinewidths = 1, scalebarlinewidth = 1, scalebarcolor = 'black', letterfontsize = 32, letterposx = 0.95, letterposy = 0.95, letter_ffc = None, letter_ffa = 0., letter_fec = None, letter_fea = 1., scalebarfontsize = 'medium', beamfc = '0.7', beamfa = 0.5, beamec = 'black', beamea = 1., showscalelab = True, reducescalelab = True, borderleft = 1.25, borderbottom = 1.25, borderright = 0., bordertop = 0.,x_major_formatter = None, x_ticksn = None, hide_ticl = False, hide_ticl_left = True, hide_ticl_min = 0., hide_ticl_max = 0., hide_ticl_top = 0., hide_ticl_bottom = 0., offsetunits = 'arcsec'):
     """
     Plot a number of PV diagrams
 
@@ -1731,6 +1732,15 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
     plotprefix (str)                             : Prefix to output plots
     plotpostfix (str)                            : Postfix (ending) of output plots, determines output file type (e.g. '.pdf', '.png')
     figsize (float tuple)                        : Size of figure in inches, x and y
+x_major_formatter (None or str)               : Formatter of major xticklabels, e.g. 'hh:mm'
+    x_ticksn (None or int)                          : Numer of xticklabels
+    hide_ticl (bool or list of bool)              : Create a white patch to hide a portion of the x-axis ticklabels, either one bool for all sub-plots or a list of nx bools for nx individual plots
+    hide_ticl_left (bool)                         : Indication if the patch is on the left (True) or on the right (False)
+    hide_ticl_min (float)                         : Horizontal start position of the patch for each sub-plot in units of width of the subplot
+    hide_ticl_max (float)                         : Horizontal end position of the patch for each sub-plot in units of width of the subplot
+    hide_ticl_top (float)                         : Vertical start position of the patch for each sub-plot in units of height of the subplot
+    hide_ticl_bottom (float)                      : Vertical end position of the patch for each sub-plot in units of height of the plot
+    offsetunits (str)                             : Units used for the angle in the x-axis, arcsec or arcmin
 
     Produces a number of overlays reading in files
     bgname_prefix+postfixes[i] as background greyscale or colour
@@ -1774,9 +1784,14 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
         
         
         # region of image we want to display
-        header['CDELT1'] = header['CDELT1']*3600.
+        if offsetunits == 'arcsec':
+            header['CDELT1'] = header['CDELT1']*3600.
+            header['CRVAL1'] = header['CRVAL1']*3600.
+        else:
+            header['CDELT1'] = header['CDELT1']*60.
+            header['CRVAL1'] = header['CRVAL1']*60.
+            
         header['CDELT2'] = header['CDELT2']/1000.
-        header['CRVAL1'] = header['CRVAL1']*3600.
         header['CRVAL2'] = header['CRVAL2']/1000.
         header.set('BMAJ', 2)
         header.set('BMIN', 0.008)
@@ -1794,13 +1809,21 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
                 scale_ffc = None
                 scale_fec = None
                 showscalelab = False
-        kwargs = {'vmin' : vmin, 'vmax': vmax, 'pmin' : pmin, 'pmax' : pmax, 'stretch' : stretch, 'cmap' : cmap, 'invert' : invert, 'colourbar' : colourbar, 'frametickcolour' : frametickcolour, 'frameticklinewidth' : frameticklinewidth, 'frameticklength' : frameticklength,'showscale' : showscale, 'distance' : distance, 'scaleunits' : scaleunits, 'annotationfontsize' : annotationfontsize, 'aspect': aspect, 'scalebarlinewidth': scalebarlinewidth, 'scalebarfontsize': scalebarfontsize, 'scalebarcolor': scalebarcolor, 'scale_borderpad': scale_borderpad, 'scale_sep': scale_sep, 'scale_ffc': scale_ffc, 'scale_ffa': scale_ffa , 'scale_fec': scale_fec, 'scale_fea': scale_fea, 'showscalelab': showscalelab}
+        kwargs = {'vmin' : vmin, 'vmax': vmax, 'pmin' : pmin, 'pmax' : pmax, 'stretch' : stretch, 'cmap' : cmap, 'invert' : invert, 'colourbar' : colourbar, 'frametickcolour' : frametickcolour, 'frameticklinewidth' : frameticklinewidth, 'frameticklength' : frameticklength,'showscale' : showscale, 'distance' : distance, 'scaleunits' : scaleunits, 'annotationfontsize' : annotationfontsize, 'aspect': aspect, 'scalebarlinewidth': scalebarlinewidth, 'scalebarfontsize': scalebarfontsize, 'scalebarcolor': scalebarcolor, 'scale_borderpad': scale_borderpad, 'scale_sep': scale_sep, 'scale_ffc': scale_ffc, 'scale_ffa': scale_ffa , 'scale_fec': scale_fec, 'scale_fea': scale_fea, 'showscalelab': showscalelab, 'offsetunits': offsetunits}
         plotprep_general(fig, **kwargs)
 
         fig.set_xaxis_coord_type('scalar')
-        
-        fig.axis_labels.set_xtext(r'OFFSET (arcsec)')
+        if offsetunits == 'arcsec':
+            fig.axis_labels.set_xtext(r'OFFSET (arcsec)')
+        else:
+            fig.axis_labels.set_xtext(r'OFFSET (arcmin)')
+            
         fig.axis_labels.set_ytext(r'VELOCITY (km$\,$s$^{-1}$)')
+
+        if x_major_formatter != None:
+            fig.ax.coords[fig.x].set_major_formatter(x_major_formatter)
+        if x_ticksn != None:
+            fig.ax.coords[fig.x].set_ticks(number = x_ticksn)
 
         name = plotprefix+'.'.join(postfixes[posnum].split('.')[:-1])+'_'+bgname_prefix
         for contournumber in range(len(contoursets)):
@@ -1809,10 +1832,16 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
             header = hdulist[0].header
             image = hdulist[0].data
             hdulist.close()
+            
             # region of image we want to display
-            header['CDELT1'] = header['CDELT1']*3600.
+            if offsetunits == 'arcsec':
+                header['CDELT1'] = header['CDELT1']*3600.
+                header['CRVAL1'] = header['CRVAL1']*3600.
+            else:
+                header['CDELT1'] = header['CDELT1']*60.
+                header['CRVAL1'] = header['CRVAL1']*60.
+                
             header['CDELT2'] = header['CDELT2']/1000.
-            header['CRVAL1'] = header['CRVAL1']*3600.
             header['CRVAL2'] = header['CRVAL2']/1000.
 
             hdu = fits.PrimaryHDU(data=image,header=header)
@@ -1842,7 +1871,10 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
             hheader = fits.open(beaminfoset)[0].header
             hb = math.sqrt(hheader['BMAJ']*hheader['BMIN'])
             hcdelt = header['CDELT1']
-            hp = hb*3600./hcdelt
+            if offsetunits == 'arcsec':
+                hp = hb*3600./hcdelt
+            else:
+                hp = hb*60./hcdelt
             vb = hheader['CDELT3']
             vp = vb*vres/(1000.*header['CDELT2'])
             ax = matplotlib.pyplot.gca()
@@ -1873,8 +1905,22 @@ def plotpvdiagrams(bgname_prefix = '', vmin = None, vmax = None, pmin = None, pm
 
             fig.ax.add_artist(theartist)
 
-        figure.savefig(name+plotpostfix)
         fig.close()
+
+        if hide_ticl == True:
+            hdu.data = 0.*hdu.data
+            pnow = 1-borderleft-borderright
+            pnoh = 1-bordertop-borderbottom
+            fig = aplpy.FITSFigure(hdu, figure=figure, subplot=[borderleft+hide_ticl_min*pnow,borderbottom+hide_ticl_bottom*pnoh,hide_ticl_max*pnow-(hide_ticl_min*pnow), (hide_ticl_top-hide_ticl_bottom)*pnoh])
+            fig.axis_labels.hide_x()
+            fig.tick_labels.hide_x()
+            fig.axis_labels.hide_y()
+            fig.tick_labels.hide_y()
+            fig.ticks.hide()
+            fig.frame.set_color('white')
+            fig.close()
+
+        figure.savefig(name+plotpostfix)
         plt.close()
         
 if __name__ == "__main__":
